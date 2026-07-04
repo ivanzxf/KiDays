@@ -2,119 +2,134 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { School, Task } from '@/types';
-import { School as SchoolIcon, CheckCircle2 } from 'lucide-react';
+import { School, StudentTask } from '@/types';
+import { School as SchoolIcon, CheckCircle2, X, Move } from 'lucide-react';
 
-interface SchoolCardProps {
-  school: School;
-  onDetailsClick?: (school: School) => void;
-  onTaskUpdate?: (schoolId: string, tasks: Task[]) => void;
+// 兼容性接口，支持旧的 SchoolWithTasks 格式
+interface CompatibleSchool extends School {
+  nameZh?: string;
+  nameEn?: string | null;
+  schoolNet?: string | null;
+  tasks?: StudentTask[];
 }
 
-export default function SchoolCard({ school, onDetailsClick, onTaskUpdate }: SchoolCardProps) {
+interface SchoolCardProps {
+  school: CompatibleSchool;
+  onDetailsClick?: (school: any) => void;
+  onTaskUpdate?: (schoolId: string, tasks: StudentTask[]) => void;
+  onDelete?: (schoolId: string) => void;
+  dragHandleAttributes?: any;
+  dragHandleListeners?: any;
+  dragHandleRef?: (element: HTMLElement | null) => void;
+  isOverlay?: boolean;
+}
+
+export default function SchoolCard({
+  school,
+  onDetailsClick,
+  onTaskUpdate,
+  onDelete,
+  dragHandleAttributes,
+  dragHandleListeners,
+  dragHandleRef,
+  isOverlay = false,
+}: SchoolCardProps) {
+  // 兼容性处理 - 获取正确的字段
+  const nameZh = school.nameZh || school.name_zh;
+  const tasks = school.tasks || [];
+
   // 添加本地状态来管理任务完成情况
-  const [tasks, setTasks] = useState(school.tasks);
+  const [localTasks, setLocalTasks] = useState<StudentTask[]>(tasks);
 
   const handleTaskToggle = (taskId: string) => {
-    const newTasks = tasks.map(task => 
+    const newTasks = localTasks.map(task => 
       task.id === taskId ? { ...task, completed: !task.completed } : task
     );
-    setTasks(newTasks);
+    setLocalTasks(newTasks);
     if (onTaskUpdate) {
       onTaskUpdate(school.id, newTasks);
     }
   };
 
-  const completedCount = tasks.filter(t => t.completed).length;
-  const totalCount = tasks.length;
-  const progress = Math.round((completedCount / totalCount) * 100);
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -8, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' }}
-      className="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-7 border border-white/30 overflow-hidden"
+      whileHover={!isOverlay ? { y: -8, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } : {}}
+      className="relative h-full bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-5 border border-white/30 overflow-hidden flex flex-col"
     >
-      {/* Card Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex items-start space-x-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-            <SchoolIcon className="w-7 h-7 text-white" />
+      {!isOverlay && (
+        <div className="absolute right-0 top-0 flex items-center gap-0">
+          <div 
+            ref={dragHandleRef}
+            {...dragHandleAttributes}
+            {...dragHandleListeners}
+            className="flex h-8 w-8 items-center justify-center text-gray-400 transition-all hover:theme-text cursor-grab active:cursor-grabbing"
+            title="按住拖拽排序"
+          >
+            <Move className="h-4 w-4" />
           </div>
-          <div>
-            <h3 className="text-xl font-extrabold text-gray-800">{school.nameZh}</h3>
-            <p className="text-sm text-gray-500 font-medium mt-1">{school.nameEn}</p>
-          </div>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(school.id)}
+                className="-ml-2 flex h-8 w-8 items-center justify-center text-gray-400 transition-all hover:text-red-500"
+              title="刪除學校"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-bold text-gray-600">完成進度</span>
-          <span className="text-sm font-bold text-indigo-600">{progress}%</span>
-        </div>
-        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"
-          />
+      <div className="mb-1 min-h-[48px] pr-1">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="mt-0.5 h-11 w-11 theme-gradient rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <SchoolIcon className="w-6 h-6 text-white" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[15px] font-extrabold text-gray-800 leading-snug break-words">
+              {nameZh}
+            </h3>
+          </div>
         </div>
       </div>
       
       {/* Tasks */}
-      <div className="space-y-3 mb-6">
-        {tasks.map((task, index) => (
+      <div className="mt-3 grid flex-1 grid-rows-4 gap-1.5 pr-10">
+        {localTasks.map((task, index) => (
           <motion.div
             key={task.id}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="group flex items-center space-x-3 p-3 rounded-2xl hover:bg-gray-50 transition-all"
+            className="group flex min-h-0 items-center space-x-2 rounded-xl px-2 py-1 hover:bg-gray-50 transition-all"
           >
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => !task.disabled && handleTaskToggle(task.id)}
-              disabled={task.disabled}
-              className={`flex-shrink-0 w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all ${
-                task.disabled
-                  ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
-                  : task.completed
-                  ? 'border-transparent bg-gradient-to-br from-indigo-500 to-purple-600'
-                  : 'border-gray-300 hover:border-indigo-400'
+              onClick={() => handleTaskToggle(task.id)}
+              className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 transition-all ${
+                task.completed
+                  ? 'border-transparent theme-gradient'
+                  : 'border-gray-200 group-hover:theme-border'
               }`}
             >
               {task.completed && (
-                <CheckCircle2 className="w-4 h-4 text-white" />
+                <CheckCircle2 className="h-3 w-3 text-white" />
               )}
             </motion.button>
             <label
-              className={`flex-1 text-sm font-medium cursor-pointer transition-all ${
+              className={`flex-1 truncate text-[12px] font-semibold cursor-pointer leading-5 transition-all ${
                 task.completed
-                  ? 'text-gray-400 line-through'
-                  : 'text-gray-700 group-hover:text-indigo-700'
-              } ${task.disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+                  ? 'text-gray-300 line-through'
+                  : 'text-gray-600 group-hover:theme-text'
+              }`}
             >
               {task.title}
             </label>
           </motion.div>
         ))}
       </div>
-      
-      {onDetailsClick && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => onDetailsClick(school)}
-          className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all"
-        >
-          查看詳情
-        </motion.button>
-      )}
     </motion.div>
   );
 }

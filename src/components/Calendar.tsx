@@ -6,6 +6,11 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'luci
 import { Event } from '@/types';
 import { mockEvents } from '@/lib/mockData';
 
+// 兼容性函数：将日期字符串或 Date 对象转换为 Date 对象
+const getEventDate = (date: string | Date): Date => {
+  return typeof date === 'string' ? new Date(date) : date;
+};
+
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -27,10 +32,12 @@ export default function Calendar() {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const hasEvent = mockEvents.some(
-        (e) =>
-          e.date.getDate() === day &&
-          e.date.getMonth() === month &&
-          e.date.getFullYear() === year
+        (e) => {
+          const eventDate = getEventDate(e.date);
+          return eventDate.getDate() === day &&
+                 eventDate.getMonth() === month &&
+                 eventDate.getFullYear() === year;
+        }
       );
       const isSelected =
         selectedDate &&
@@ -46,15 +53,15 @@ export default function Calendar() {
           onClick={() => setSelectedDate(date)}
           className={`h-12 w-12 rounded-2xl flex items-center justify-center text-sm font-semibold transition-all ${
             isSelected
-              ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg'
+              ? 'theme-gradient text-white shadow-lg'
               : hasEvent
-              ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+              ? 'theme-text theme-bg hover:opacity-80'
               : 'text-gray-700 hover:bg-gray-100'
           } relative`}
         >
           {day}
           {hasEvent && !isSelected && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"></div>
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 theme-gradient rounded-full"></div>
           )}
         </motion.button>
       );
@@ -66,10 +73,12 @@ export default function Calendar() {
   const getEventsForSelectedDate = () => {
     if (!selectedDate) return [];
     return mockEvents.filter(
-      (e) =>
-        e.date.getDate() === selectedDate.getDate() &&
-        e.date.getMonth() === selectedDate.getMonth() &&
-        e.date.getFullYear() === selectedDate.getFullYear()
+      (e) => {
+        const eventDate = getEventDate(e.date);
+        return eventDate.getDate() === selectedDate.getDate() &&
+               eventDate.getMonth() === selectedDate.getMonth() &&
+               eventDate.getFullYear() === selectedDate.getFullYear();
+      }
     );
   };
 
@@ -83,14 +92,14 @@ export default function Calendar() {
       className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 h-full border border-white/30"
     >
       <div className="flex items-center space-x-3 mb-8">
-        <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+        <div className="w-12 h-12 theme-gradient rounded-2xl flex items-center justify-center shadow-lg">
           <CalendarIcon className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-2xl font-extrabold text-gray-800">月曆</h2>
       </div>
 
-      <div className="flex justify-between items-center mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-2xl">
-        <h3 className="text-xl font-bold text-indigo-700">
+      <div className="flex justify-between items-center mb-6 theme-bg p-4 rounded-2xl">
+        <h3 className="text-xl font-bold theme-text">
           {currentDate.getFullYear()}年{currentDate.getMonth() + 1}月
         </h3>
         <div className="flex space-x-2">
@@ -102,7 +111,7 @@ export default function Calendar() {
             }
             className="p-3 bg-white rounded-2xl hover:bg-gray-50 shadow-sm transition-all"
           >
-            <ChevronLeft className="w-6 h-6 text-indigo-600" />
+            <ChevronLeft className="w-6 h-6 theme-text" />
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1, rotate: 90 }}
@@ -112,7 +121,7 @@ export default function Calendar() {
             }
             className="p-3 bg-white rounded-2xl hover:bg-gray-50 shadow-sm transition-all"
           >
-            <ChevronRight className="w-6 h-6 text-indigo-600" />
+            <ChevronRight className="w-6 h-6 theme-text" />
           </motion.button>
         </div>
       </div>
@@ -150,11 +159,11 @@ export default function Calendar() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ x: 8 }}
-                className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100"
+                className="p-4 theme-bg rounded-2xl border theme-border"
               >
-                <div className="font-bold text-indigo-700">{event.title}</div>
+                <div className="font-bold theme-text">{event.title}</div>
                 <div className="text-xs text-gray-500 mt-1 font-medium">
-                  {event.type === 'kindergarten' ? '幼稚園' : '小學'}
+                  {event.type === 'kindergarten' ? '幼稚園申請' : '小學申請'}
                 </div>
               </motion.div>
             ))}

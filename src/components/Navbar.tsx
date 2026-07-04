@@ -3,12 +3,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '@/context/AppContext';
-import { User, LogOut, ChevronDown, Plus, Trash2, GraduationCap } from 'lucide-react';
+import { User, LogOut, ChevronDown, Plus, Trash2, GraduationCap, X } from 'lucide-react';
 
 export default function Navbar() {
-  const { isLoggedIn, setIsLoggedIn, currentStudent, setCurrentStudent, students } = useApp();
+  const { isLoggedIn, setIsLoggedIn, currentStudent, setCurrentStudent, students, addStudent } = useApp();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 新增學生表單狀態
+  const [newStudentData, setNewStudentData] = useState({
+    name: '',
+    birthYear: new Date().getFullYear() - 3,
+    birthMonth: 1,
+    gender: 'boy' as 'boy' | 'girl',
+    applicationType: 'kindergarten' as 'kindergarten' | 'primary'
+  });
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
@@ -41,9 +51,9 @@ export default function Navbar() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-100 transition-all shadow-sm"
+                  className="flex items-center space-x-3 px-5 py-3 rounded-2xl theme-bg hover:opacity-90 theme-border border transition-all shadow-sm"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                  <div className="w-12 h-12 theme-gradient rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">
                     {currentStudent?.name.charAt(0) || '用'}
                   </div>
                   <div className="text-left">
@@ -52,7 +62,7 @@ export default function Navbar() {
                       {currentStudent?.name || '請選擇學生'}
                     </div>
                   </div>
-                  <ChevronDown className={`w-5 h-5 text-indigo-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className="w-5 h-5 theme-text transition-transform" />
                 </motion.button>
 
                 {/* 下拉菜单 */}
@@ -79,21 +89,21 @@ export default function Navbar() {
                             }}
                             className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl text-left transition-all mb-1 ${
                               currentStudent?.id === student.id
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                                ? 'theme-gradient text-white shadow-lg'
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-lg ${
                               currentStudent?.id === student.id
                                 ? 'bg-white bg-opacity-30'
-                                : 'bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600'
+                                : 'bg-gradient-to-br from-indigo-100 to-purple-100 theme-text'
                             }`}>
                               {student.name.charAt(0)}
                             </div>
                             <div>
                               <div className="font-bold">{student.name}</div>
                               <div className="text-xs opacity-80">
-                                {student.applicationType === 'kindergarten' ? '幼稚園' : '小學'}
+                                {student.applicationType === 'kindergarten' ? '幼稚園申請' : '小學申請'}
                               </div>
                             </div>
                           </motion.button>
@@ -103,7 +113,10 @@ export default function Navbar() {
                       <div className="border-t border-gray-100 p-3 space-y-2">
                         <motion.button
                           whileHover={{ x: 4 }}
-                          onClick={() => setIsDropdownOpen(false)}
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            setIsAddStudentModalOpen(true);
+                          }}
                           className="w-full flex items-center space-x-4 px-4 py-3 rounded-2xl text-gray-700 hover:bg-gray-50 transition-all"
                         >
                           <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center">
@@ -156,6 +169,159 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* 新增學生 Modal */}
+      <AnimatePresence>
+        {isAddStudentModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAddStudentModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-50 flex-shrink-0">
+                <h3 className="text-xl font-extrabold text-gray-800">新增學生檔案</h3>
+                <button
+                  onClick={() => setIsAddStudentModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-all"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                {/* 暱稱 */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">學生暱稱</label>
+                  <input
+                    type="text"
+                    placeholder="例如：小明"
+                    value={newStudentData.name}
+                    onChange={(e) => setNewStudentData({ ...newStudentData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+                  />
+                </div>
+
+                {/* 出生年月 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">出生年份</label>
+                    <select
+                      value={newStudentData.birthYear}
+                      onChange={(e) => setNewStudentData({ ...newStudentData, birthYear: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+                    >
+                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year} 年</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">出生月份</label>
+                    <select
+                      value={newStudentData.birthMonth}
+                      onChange={(e) => setNewStudentData({ ...newStudentData, birthMonth: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+                    >
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                        <option key={month} value={month}>{month} 月</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 性別 */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">性別</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setNewStudentData({ ...newStudentData, gender: 'boy' })}
+                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                        newStudentData.gender === 'boy'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      男孩子
+                    </button>
+                    <button
+                      onClick={() => setNewStudentData({ ...newStudentData, gender: 'girl' })}
+                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                        newStudentData.gender === 'girl'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      女孩子
+                    </button>
+                  </div>
+                </div>
+
+                {/* 申請類型 */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">申請類型</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setNewStudentData({ ...newStudentData, applicationType: 'kindergarten' })}
+                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                        newStudentData.applicationType === 'kindergarten'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      幼稚園申請
+                    </button>
+                    <button
+                      onClick={() => setNewStudentData({ ...newStudentData, applicationType: 'primary' })}
+                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                        newStudentData.applicationType === 'primary'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                      }`}
+                    >
+                      小學申請
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-50 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    if (newStudentData.name.trim()) {
+                      addStudent(newStudentData);
+                      setIsAddStudentModalOpen(false);
+                      setNewStudentData({
+                        name: '',
+                        birthYear: new Date().getFullYear() - 3,
+                        birthMonth: 1,
+                        gender: 'boy',
+                        applicationType: 'kindergarten'
+                      });
+                    }
+                  }}
+                  disabled={!newStudentData.name.trim()}
+                  className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all ${
+                    newStudentData.name.trim()
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  創建檔案
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

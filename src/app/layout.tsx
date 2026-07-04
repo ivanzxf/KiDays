@@ -1,22 +1,35 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { AppProvider } from '@/context/AppContext';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'KiDays 童步',
-  description: '香港幼稚園和小學申請一站式信息及看板工具',
-};
+import { AppProvider, useApp } from '@/context/AppContext';
+import './globals.css';
+import { useEffect } from 'react';
+
+function ThemeWrapper({ children }: { children: React.ReactNode }) {
+  const { currentStudent } = useApp();
+  
+  useEffect(() => {
+    if (currentStudent?.gender) {
+      document.documentElement.setAttribute('data-theme', currentStudent.gender);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [currentStudent]);
+
+  return <>{children}</>;
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="zh-HK">
       <body className="min-h-screen bg-background-gray">
         <AppProvider>
-          {children}
+          <ThemeWrapper>
+            {children}
+          </ThemeWrapper>
         </AppProvider>
       </body>
     </html>

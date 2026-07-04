@@ -3,19 +3,72 @@
 @tailwind utilities;
 
 :root {
-  --background: #F5F7FA;
-  --foreground: #171717;
+  --primary-from: #6366f1; /* indigo-500 */
+  --primary-to: #9333ea;   /* purple-600 */
+  --primary-bg: #f5f3ff;   /* purple-50 */
+  --primary-border: #ddd6fe; /* purple-200 */
+  --primary-text: #4f46e5;  /* indigo-600 */
 }
 
-body {
-  color: var(--foreground);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+[data-theme='boy'] {
+  --primary-from: #3b82f6; /* blue-500 */
+  --primary-to: #6366f1;   /* indigo-600 */
+  --primary-bg: #eff6ff;   /* blue-50 */
+  --primary-border: #bfdbfe; /* blue-200 */
+  --primary-text: #2563eb;  /* blue-600 */
+}
+
+[data-theme='girl'] {
+  --primary-from: #ec4899; /* pink-500 */
+  --primary-to: #a855f7;   /* purple-600 */
+  --primary-bg: #fdf2f8;   /* pink-50 */
+  --primary-border: #fbcfe8; /* pink-200 */
+  --primary-text: #db2777;  /* pink-600 */
+}
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen text-gray-900;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.theme-gradient {
+  background: linear-gradient(to bottom right, var(--primary-from), var(--primary-to));
+}
+
+.theme-text {
+  color: var(--primary-text);
+}
+
+.theme-bg {
+  background-color: var(--primary-bg);
+}
+
+.theme-border {
+  border-color: var(--primary-border);
+}
+
+.theme-gradient-text {
+  background: linear-gradient(to right, var(--primary-from), var(--primary-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 @layer utilities {

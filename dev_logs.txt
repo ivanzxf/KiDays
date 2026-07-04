@@ -1,0 +1,12 @@
+
+> kidays@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 59832, using available port 3003 instead.
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3003
+   - Network:      http://172.20.10.2:3003
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1101ms
