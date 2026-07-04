@@ -60,6 +60,13 @@ export interface SchoolWithTasks extends School {
   tasks: StudentTask[];
 }
 
+export interface DashboardSchool extends School {
+  nameZh?: string;
+  nameEn?: string | null;
+  schoolNet?: string | null;
+  tasks?: StudentTask[];
+}
+
 export interface StudentSchoolWithDetails extends StudentSchool {
   school: School;
   tasks: StudentTask[];

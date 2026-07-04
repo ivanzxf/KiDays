@@ -2,20 +2,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { School, StudentTask } from '@/types';
+import { DashboardSchool, StudentTask } from '@/types';
 import { School as SchoolIcon, CheckCircle2, X, Move } from 'lucide-react';
 
-// 兼容性接口，支持旧的 SchoolWithTasks 格式
-interface CompatibleSchool extends School {
-  nameZh?: string;
-  nameEn?: string | null;
-  schoolNet?: string | null;
-  tasks?: StudentTask[];
-}
-
 interface SchoolCardProps {
-  school: CompatibleSchool;
-  onDetailsClick?: (school: any) => void;
+  school: DashboardSchool;
   onTaskUpdate?: (schoolId: string, tasks: StudentTask[]) => void;
   onDelete?: (schoolId: string) => void;
   dragHandleAttributes?: any;
@@ -26,7 +17,6 @@ interface SchoolCardProps {
 
 export default function SchoolCard({
   school,
-  onDetailsClick,
   onTaskUpdate,
   onDelete,
   dragHandleAttributes,
