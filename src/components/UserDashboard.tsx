@@ -2,20 +2,78 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, CollisionDetection, rectIntersection, defaultDropAnimationSideEffects } from '@dnd-kit/core';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragOverEvent,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  CollisionDetection,
+  rectIntersection,
+  defaultDropAnimationSideEffects,
+} from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
-import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { Plus, School as SchoolIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { DashboardSchool } from '@/types';
-import { mockSchools } from '@/lib/mockData';
+import { DashboardSchool, SchoolCycleWithEvents, StudentTask, formatSchoolForFrontend } from '@/types';
+import { useSchoolsWithLatestCycle, useSchools } from '@/hooks/useSupabase';
 import SchoolCard from '@/components/SchoolCard';
 import AddSchoolModal from '@/components/AddSchoolModal';
 import DeleteSchoolDialog from '@/components/DeleteSchoolDialog';
 import SortableSchoolCard from '@/components/SortableSchoolCard';
 
-const BOARD_CARD_SIZE = 240;
-const BOARD_GRID_TEMPLATE = `repeat(auto-fit, ${BOARD_CARD_SIZE}px)`;
+const buildTasksFromLatestCycle = (
+  school: DashboardSchool,
+  cyclesMap: Record<string, SchoolCycleWithEvents[]>
+): StudentTask[] => {
+  const latestCycle = cyclesMap[school.id]?.[0];
+  if (!latestCycle) return school.tasks ?? [];
+
+  const formatDateLabel = (startAt: string | null, dateStatus?: string | null) => {
+    if (dateStatus === 'tbd' || !startAt) return '日期待定';
+    return new Date(startAt).toLocaleDateString('zh-HK', {
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  return latestCycle.events.map((event, index) => ({
+    id: event.id,
+    school_id: school.id,
+    title:
+      event.title_zh ??
+      (event.event_type === 'open_day'
+        ? '開放日'
+        : event.event_type === 'info_session'
+          ? '簡介會'
+          : event.event_type === 'application_open'
+            ? '申請開始'
+            : event.event_type === 'application_deadline'
+              ? '申請截止'
+              : event.event_type === 'first_interview'
+                ? '第一面'
+                : event.event_type === 'second_interview'
+                  ? '第二面'
+                  : event.event_type === 'third_interview'
+                    ? '第三面'
+                    : event.event_type === 'result_release'
+                      ? '放榜'
+                      : event.event_type === 'registration'
+                        ? '註冊'
+                        : event.event_type === 'assessment'
+                          ? '入學評估'
+                          : '待辦事項'),
+    description: formatDateLabel(event.start_at, event.date_status),
+    sort_order: index + 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    completed: false,
+    completed_at: null,
+  }));
+};
 
 const dropAnimation = {
   duration: 160,
@@ -65,25 +123,37 @@ export default function UserDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSchool, setSelectedSchool] = useState<DashboardSchool | null>(null);
 
-  const studentApplicationType = currentStudent?.applicationType || 
-                                 currentStudent?.application_type || 
-                                 'kindergarten';
+  const studentApplicationType = currentStudent?.applicationType ?? 'primary';
+  const { schools: availableSchools } = useSchools(studentApplicationType);
+  const { cyclesMap, loading: cyclesLoading } = useSchoolsWithLatestCycle(
+    studentApplicationType,
+    '2027-2028'
+  );
 
   const getSchoolNameZh = (school: DashboardSchool) => school.nameZh || school.name_zh;
   const getSchoolNameEn = (school: DashboardSchool) => school.nameEn || school.name_en;
 
-  const filteredSchools = mockSchools.filter(school => {
-    const nameZh = getSchoolNameZh(school);
-    const nameEn = getSchoolNameEn(school);
-    const matchesSearch = (nameZh?.includes(searchQuery) || '') || 
-                         (nameEn?.toLowerCase().includes(searchQuery.toLowerCase()) || '');
-    const matchesType = school.type === studentApplicationType;
-    return matchesSearch && matchesType;
-  });
-
-  const currentStudentSchools = (currentStudent?.addedSchools || []).filter(
+  const currentStudentSchools = (currentStudent?.addedSchools ?? []).filter(
     school => school.type === studentApplicationType
   );
+
+  const currentStudentSchoolIds = new Set(currentStudentSchools.map((school) => school.id));
+
+  const filteredSchools = availableSchools
+    .map((school) => formatSchoolForFrontend(school))
+    .filter((school) => !currentStudentSchoolIds.has(school.id))
+    .filter((school) => {
+      const nameZh = getSchoolNameZh(school) ?? '';
+      const nameEn = getSchoolNameEn(school) ?? '';
+      const query = searchQuery.trim();
+      const matchesSearch = query.length === 0
+        ? true
+        : nameZh.includes(query) || nameEn.toLowerCase().includes(query.toLowerCase());
+      const matchesType =
+        (school.application_level ?? school.type) === studentApplicationType ||
+        school.type === studentApplicationType;
+      return matchesSearch && matchesType;
+    });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -95,11 +165,11 @@ export default function UserDashboard() {
     ? currentStudentSchools.find(s => s.id === activeSchoolId) || null
     : null;
 
-  const handleDragStart = (event: any) => {
-    setActiveSchoolId(event.active?.id ?? null);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveSchoolId(typeof event.active.id === 'string' ? event.active.id : null);
   };
 
-  const handleDragOver = (event: any) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -108,17 +178,17 @@ export default function UserDashboard() {
 
     if (oldIndex !== newIndex) {
       const nextSchools = arrayMove(currentStudentSchools, oldIndex, newIndex);
-      reorderStudentSchools(nextSchools);
+      void reorderStudentSchools(nextSchools);
     }
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (_event: DragEndEvent) => {
     setActiveSchoolId(null);
   };
 
   const handleDeleteConfirm = () => {
     if (schoolToDelete) {
-      removeSchoolFromStudent(schoolToDelete);
+      void removeSchoolFromStudent(schoolToDelete);
       setSchoolToDelete(null);
     }
   };
@@ -130,11 +200,30 @@ export default function UserDashboard() {
   };
 
   const handleAddSchool = () => {
-    if (selectedSchool) {
-      addSchoolToStudent(selectedSchool);
+    if (selectedSchool && currentStudent) {
+      void addSchoolToStudent({
+        ...selectedSchool,
+        tasks: buildTasksFromLatestCycle(selectedSchool, cyclesMap),
+      });
       closeAddSchoolModal();
     }
   };
+
+  if (!currentStudent) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="rounded-[2rem] border border-white/20 bg-white/10 px-8 py-12 text-center shadow-2xl backdrop-blur-md">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15">
+            <SchoolIcon className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="mt-6 text-2xl font-extrabold text-white">還沒有學生檔案</h2>
+          <p className="mt-3 text-sm font-medium leading-7 text-white/70">
+            請先從右上角新增學生，建立檔案後就可以開始添加學校與追蹤申請進度。
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -159,17 +248,13 @@ export default function UserDashboard() {
             setActiveSchoolId(null);
           }}
         >
-          <div
-            className="grid justify-center gap-6"
-            style={{ gridTemplateColumns: BOARD_GRID_TEMPLATE }}
-          >
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             <SortableContext items={currentStudentSchools.map(s => s.id)} strategy={rectSortingStrategy}>
               {currentStudentSchools.map(school => (
                 <SortableSchoolCard
                   key={school.id}
                   id={school.id}
                   school={school}
-                  cardSize={BOARD_CARD_SIZE}
                   updateStudentSchoolTasks={updateStudentSchoolTasks}
                   setSchoolToDelete={setSchoolToDelete}
                 />
@@ -180,13 +265,12 @@ export default function UserDashboard() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              style={{ height: BOARD_CARD_SIZE, width: BOARD_CARD_SIZE }}
             >
                 <motion.button
                   whileHover={{ scale: 1.03, y: -4 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setIsAddSchoolModalOpen(true)}
-                  className="flex h-full w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/50 bg-white/50 p-6 shadow-xl transition-all group hover:border-white/80"
+                  className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/50 bg-white/50 p-6 shadow-xl transition-all group hover:border-white/80"
                 >
                   <div className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-all">
                     <Plus className="w-8 h-8 theme-text" />
@@ -198,13 +282,12 @@ export default function UserDashboard() {
           </div>
 
           <DragOverlay
-            modifiers={[snapCenterToCursor]}
             dropAnimation={dropAnimation}
           >
             {activeSchool ? (
               <div
                 className="opacity-70 pointer-events-none"
-                style={{ height: BOARD_CARD_SIZE, width: BOARD_CARD_SIZE }}
+                style={{ width: 320 }}
               >
                 <SchoolCard school={activeSchool} isOverlay={true} />
               </div>
@@ -224,6 +307,8 @@ export default function UserDashboard() {
         searchQuery={searchQuery}
         selectedSchool={selectedSchool}
         filteredSchools={filteredSchools}
+        cyclesMap={cyclesMap}
+        cyclesLoading={cyclesLoading}
         onSearchChange={setSearchQuery}
         onSelectSchool={setSelectedSchool}
         onClose={closeAddSchoolModal}

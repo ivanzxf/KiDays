@@ -11,9 +11,7 @@ const getEventDate = (date: string | Date): Date => {
 };
 
 export default function EventsTimeline() {
-  const [activeTab, setActiveTab] = useState<'kindergarten' | 'primary'>('kindergarten');
-
-  const filteredEvents = mockEvents.filter((e) => e.type === activeTab);
+  const filteredEvents = mockEvents.filter((e) => e.type === 'primary');
 
   return (
     <motion.div
@@ -29,31 +27,8 @@ export default function EventsTimeline() {
         <h2 className="text-2xl font-extrabold text-gray-800">重要升學節點</h2>
       </div>
 
-      <div className="flex bg-gradient-to-r from-indigo-50 to-purple-50 p-1.5 rounded-2xl mb-8">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveTab('kindergarten')}
-          className={`flex-1 px-6 py-3 rounded-xl font-bold transition-all ${
-            activeTab === 'kindergarten'
-              ? 'bg-white text-indigo-600 shadow-lg'
-              : 'text-gray-600 hover:text-indigo-500'
-          }`}
-        >
-          幼稚園
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setActiveTab('primary')}
-          className={`flex-1 px-6 py-3 rounded-xl font-bold transition-all ${
-            activeTab === 'primary'
-              ? 'bg-white text-indigo-600 shadow-lg'
-              : 'text-gray-600 hover:text-indigo-500'
-          }`}
-        >
-          小學
-        </motion.button>
+      <div className="mb-8 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 text-sm font-bold text-indigo-700">
+        目前只顯示小學升學節點
       </div>
 
       <div className="space-y-4">
@@ -83,8 +58,7 @@ export default function EventsTimeline() {
                     <h3 className="text-lg font-bold text-gray-800">{event.title}</h3>
                   </div>
                   <div className="text-sm text-gray-500 font-medium">
-                    {eventDate.getMonth() + 1}月{eventDate.getDate()}日 · 
-                    {event.type === 'kindergarten' ? '幼稚園' : '小學'}
+                    {eventDate.getMonth() + 1}月{eventDate.getDate()}日 · 小學
                   </div>
                 </div>
               </div>

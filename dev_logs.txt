@@ -1,5 +1,5 @@
 
-> kidays@0.1.0 dev
+> KiDays@0.1.0 dev
 > next dev
 
  ⚠ Port 3000 is in use by process 59832, using available port 3003 instead.
@@ -10,3 +10,12 @@
 
  ✓ Starting...
  ✓ Ready in 1101ms
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3003
+   - Network:      http://192.168.110.227:3003
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1010ms
+[?25h

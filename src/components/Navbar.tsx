@@ -3,21 +3,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '@/context/AppContext';
-import { User, LogOut, ChevronDown, Plus, Trash2, GraduationCap, X } from 'lucide-react';
+import { LogOut, ChevronDown, Plus, Trash2, GraduationCap, X, AlertTriangle } from 'lucide-react';
 
-export default function Navbar() {
-  const { isLoggedIn, setIsLoggedIn, currentStudent, setCurrentStudent, students, addStudent } = useApp();
+interface NavbarProps {
+  onOpenAuth?: () => void;
+}
+
+export default function Navbar({ onOpenAuth }: NavbarProps) {
+  const { isLoggedIn, setIsLoggedIn, currentStudent, setCurrentStudent, students, addStudent, removeStudent } = useApp();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [isDeleteStudentDialogOpen, setIsDeleteStudentDialogOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 新增學生表單狀態
   const [newStudentData, setNewStudentData] = useState({
     name: '',
-    birthYear: new Date().getFullYear() - 3,
+    birthYear: new Date().getFullYear() - 6,
     birthMonth: 1,
     gender: 'boy' as 'boy' | 'girl',
-    applicationType: 'kindergarten' as 'kindergarten' | 'primary'
+    applicationType: 'primary' as const
   });
 
   // 点击外部关闭下拉菜单
@@ -103,7 +108,7 @@ export default function Navbar() {
                             <div>
                               <div className="font-bold">{student.name}</div>
                               <div className="text-xs opacity-80">
-                                {student.applicationType === 'kindergarten' ? '幼稚園申請' : '小學申請'}
+                                小學申請
                               </div>
                             </div>
                           </motion.button>
@@ -127,11 +132,22 @@ export default function Navbar() {
                         
                         <motion.button
                           whileHover={{ x: 4 }}
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="w-full flex items-center space-x-4 px-4 py-3 rounded-2xl text-red-600 hover:bg-red-50 transition-all"
+                          onClick={() => {
+                            if (!currentStudent) return;
+                            setIsDropdownOpen(false);
+                            setIsDeleteStudentDialogOpen(true);
+                          }}
+                          disabled={!currentStudent}
+                          className={`w-full flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all ${
+                            currentStudent
+                              ? 'text-red-600 hover:bg-red-50'
+                              : 'cursor-not-allowed text-gray-300'
+                          }`}
                         >
-                          <div className="w-10 h-10 bg-red-100 rounded-2xl flex items-center justify-center">
-                            <Trash2 className="w-5 h-5 text-red-600" />
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                            currentStudent ? 'bg-red-100' : 'bg-gray-100'
+                          }`}>
+                            <Trash2 className={`w-5 h-5 ${currentStudent ? 'text-red-600' : 'text-gray-300'}`} />
                           </div>
                           <span className="font-semibold">刪除學生</span>
                         </motion.button>
@@ -160,10 +176,10 @@ export default function Navbar() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsLoggedIn(true)}
+                onClick={() => onOpenAuth?.()}
                 className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-700 transition-all"
               >
-                立即體驗
+                登入 / 註冊
               </motion.button>
             )}
           </div>
@@ -268,27 +284,8 @@ export default function Navbar() {
                 {/* 申請類型 */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">申請類型</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => setNewStudentData({ ...newStudentData, applicationType: 'kindergarten' })}
-                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
-                        newStudentData.applicationType === 'kindergarten'
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      幼稚園申請
-                    </button>
-                    <button
-                      onClick={() => setNewStudentData({ ...newStudentData, applicationType: 'primary' })}
-                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
-                        newStudentData.applicationType === 'primary'
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      小學申請
-                    </button>
+                  <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700">
+                    目前僅支援小學申請
                   </div>
                 </div>
               </div>
@@ -297,14 +294,14 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     if (newStudentData.name.trim()) {
-                      addStudent(newStudentData);
+                      void addStudent(newStudentData);
                       setIsAddStudentModalOpen(false);
                       setNewStudentData({
                         name: '',
-                        birthYear: new Date().getFullYear() - 3,
+                        birthYear: new Date().getFullYear() - 6,
                         birthMonth: 1,
                         gender: 'boy',
-                        applicationType: 'kindergarten'
+                        applicationType: 'primary'
                       });
                     }
                   }}
@@ -316,6 +313,55 @@ export default function Navbar() {
                   }`}
                 >
                   創建檔案
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isDeleteStudentDialogOpen && currentStudent && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDeleteStudentDialogOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 20 }}
+              className="relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-2xl"
+            >
+              <div className="mb-6 flex items-center gap-4 text-red-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
+                  <AlertTriangle className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">確認刪除學生？</h3>
+              </div>
+
+              <p className="mb-8 text-sm leading-7 text-gray-600">
+                你將刪除「{currentStudent.name}」的學生檔案，已添加學校與申請進度也會一併刪除，此操作無法撤銷。
+              </p>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setIsDeleteStudentDialogOpen(false)}
+                  className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-600 transition-all hover:bg-gray-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => {
+                    void removeStudent(currentStudent.id);
+                    setIsDeleteStudentDialogOpen(false);
+                  }}
+                  className="flex-1 rounded-2xl bg-red-600 py-4 font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-700"
+                >
+                  確認刪除
                 </button>
               </div>
             </motion.div>

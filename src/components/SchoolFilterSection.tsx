@@ -1,21 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
-import { School } from '@/types';
+
+type SchoolFilterType = 'all' | 'primary';
+type SchoolGenderFilter = 'all' | 'coed' | 'boys' | 'girls';
+
+interface SchoolFilters {
+  type: SchoolFilterType;
+  district: string;
+  gender: SchoolGenderFilter;
+  schoolNet: string;
+}
 
 interface SchoolFilterSectionProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: SchoolFilters) => void;
 }
 
 export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSectionProps) {
-  const [filters, setFilters] = useState({
-    type: 'all' as 'all' | 'kindergarten' | 'primary',
+  const [filters, setFilters] = useState<SchoolFilters>({
+    type: 'all',
     district: 'all',
-    gender: 'all' as 'all' | 'coed' | 'boys' | 'girls',
+    gender: 'all',
     schoolNet: 'all',
   });
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = <K extends keyof SchoolFilters>(key: K, value: SchoolFilters[K]) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
@@ -31,7 +40,6 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
           <div className="flex space-x-4">
             {[
               { value: 'all', label: '全部' },
-              { value: 'kindergarten', label: '幼稚園' },
               { value: 'primary', label: '小學' },
             ].map((option) => (
               <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
@@ -40,7 +48,7 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
                   name="type"
                   value={option.value}
                   checked={filters.type === option.value}
-                  onChange={() => handleFilterChange('type', option.value)}
+                  onChange={() => handleFilterChange('type', option.value as SchoolFilterType)}
                   className="accent-accent-blue"
                 />
                 <span className="text-sm text-gray-700">{option.label}</span>
@@ -78,7 +86,7 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
                   name="gender"
                   value={option.value}
                   checked={filters.gender === option.value}
-                  onChange={() => handleFilterChange('gender', option.value)}
+                  onChange={() => handleFilterChange('gender', option.value as SchoolGenderFilter)}
                   className="accent-accent-blue"
                 />
                 <span className="text-sm text-gray-700">{option.label}</span>

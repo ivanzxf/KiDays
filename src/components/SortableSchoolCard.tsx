@@ -8,7 +8,6 @@ import { DashboardSchool, StudentTask } from '@/types';
 interface SortableSchoolCardProps {
   id: string;
   school: DashboardSchool;
-  cardSize: number;
   updateStudentSchoolTasks: (schoolId: string, tasks: StudentTask[]) => void;
   setSchoolToDelete: (schoolId: string) => void;
 }
@@ -16,7 +15,6 @@ interface SortableSchoolCardProps {
 export default function SortableSchoolCard({
   id,
   school,
-  cardSize,
   updateStudentSchoolTasks,
   setSchoolToDelete,
 }: SortableSchoolCardProps) {
@@ -39,16 +37,14 @@ export default function SortableSchoolCard({
 
   return (
     <div ref={setNodeRef} style={style} className="relative" aria-label={`school-card-${id}`}>
-      <div style={{ height: cardSize, width: cardSize }}>
-        <SchoolCard
-          school={school}
-          onTaskUpdate={updateStudentSchoolTasks}
-          onDelete={(schoolId) => setSchoolToDelete(schoolId)}
-          dragHandleAttributes={attributes}
-          dragHandleListeners={listeners}
-          dragHandleRef={setActivatorNodeRef}
-        />
-      </div>
+      <SchoolCard
+        school={school}
+        onTaskUpdate={updateStudentSchoolTasks}
+        onDelete={(schoolId) => setSchoolToDelete(schoolId)}
+        dragHandleAttributes={attributes}
+        dragHandleListeners={listeners}
+        dragHandleRef={setActivatorNodeRef}
+      />
     </div>
   );
 }

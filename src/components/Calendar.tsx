@@ -163,7 +163,7 @@ export default function Calendar() {
               >
                 <div className="font-bold theme-text">{event.title}</div>
                 <div className="text-xs text-gray-500 mt-1 font-medium">
-                  {event.type === 'kindergarten' ? '幼稚園申請' : '小學申請'}
+                  小學申請
                 </div>
               </motion.div>
             ))}
