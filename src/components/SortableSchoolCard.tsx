@@ -39,17 +39,19 @@ export default function SortableSchoolCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative w-full sm:w-3/4"
+      className="relative w-full"
       aria-label={`school-card-${id}`}
     >
-      <SchoolCard
-        school={school}
-        onTaskUpdate={updateStudentSchoolTasks}
-        onDelete={(schoolId) => setSchoolToDelete(schoolId)}
-        dragHandleAttributes={attributes}
-        dragHandleListeners={listeners}
-        dragHandleRef={setActivatorNodeRef}
-      />
+      <div className="mx-auto w-full max-w-sm">
+        <SchoolCard
+          school={school}
+          onTaskUpdate={updateStudentSchoolTasks}
+          onDelete={(schoolId) => setSchoolToDelete(schoolId)}
+          dragHandleAttributes={attributes}
+          dragHandleListeners={listeners}
+          dragHandleRef={setActivatorNodeRef}
+        />
+      </div>
     </div>
   );
 }

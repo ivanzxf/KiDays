@@ -89,6 +89,8 @@ export default function UserDashboard() {
 
   const currentStudentSchoolIds = new Set(currentStudentSchools.map((school) => school.id));
 
+  const studentGender = currentStudent?.gender ?? null;
+
   const filteredSchools = availableSchools
     .map((school) => formatSchoolForFrontend(school))
     .filter((school) => !currentStudentSchoolIds.has(school.id))
@@ -102,7 +104,14 @@ export default function UserDashboard() {
       const matchesType =
         (school.application_level ?? school.type) === studentApplicationType ||
         school.type === studentApplicationType;
-      return matchesSearch && matchesType;
+      const schoolGenderPolicy = school.gender_policy ?? school.gender ?? null;
+      let matchesGender = true;
+      if (studentGender === 'girl') {
+        matchesGender = schoolGenderPolicy === 'girls' || schoolGenderPolicy === 'coed';
+      } else if (studentGender === 'boy') {
+        matchesGender = schoolGenderPolicy === 'boys' || schoolGenderPolicy === 'coed';
+      }
+      return matchesSearch && matchesType && matchesGender;
     });
 
   const sensors = useSensors(
@@ -214,8 +223,9 @@ export default function UserDashboard() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              className="w-full sm:w-3/4"
+              className="w-full"
             >
+              <div className="mx-auto w-full max-w-sm">
                 <motion.button
                   whileHover={{ scale: 1.03, y: -4 }}
                   whileTap={{ scale: 0.97 }}
@@ -228,21 +238,22 @@ export default function UserDashboard() {
                   <span className="text-xl font-extrabold text-white/90">添加學校</span>
                   <span className="text-white/70 text-xs font-medium mt-1">開始你的申請之旅</span>
                 </motion.button>
-              </motion.div>
+              </div>
+            </motion.div>
           </div>
 
-          <DragOverlay
-            dropAnimation={dropAnimation}
-          >
-            {activeSchool ? (
+          <DragOverlay dropAnimation={dropAnimation}>
+            {activeSchool && activeCardSize ? (
               <div
-                className="opacity-70 pointer-events-none"
+                className="pointer-events-none opacity-70"
                 style={{
-                  width: activeCardSize?.width,
-                  minHeight: activeCardSize?.height,
+                  width: activeCardSize.width,
+                  height: activeCardSize.height,
                 }}
               >
-                <SchoolCard school={activeSchool} isOverlay={true} />
+                <div className="w-full max-w-sm" style={{ width: activeCardSize.width }}>
+                  <SchoolCard school={activeSchool} isOverlay={true} />
+                </div>
               </div>
             ) : null}
           </DragOverlay>
