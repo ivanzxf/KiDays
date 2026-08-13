@@ -69,6 +69,7 @@ export default function UserDashboard() {
   const [isAddSchoolModalOpen, setIsAddSchoolModalOpen] = useState(false);
   const [schoolToDelete, setSchoolToDelete] = useState<string | null>(null);
   const [activeSchoolId, setActiveSchoolId] = useState<string | null>(null);
+  const [activeCardSize, setActiveCardSize] = useState<{ width: number; height: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSchool, setSelectedSchool] = useState<DashboardSchool | null>(null);
 
@@ -116,6 +117,10 @@ export default function UserDashboard() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveSchoolId(typeof event.active.id === 'string' ? event.active.id : null);
+    setActiveCardSize({
+      width: event.active.rect.current.initial?.width ?? 0,
+      height: event.active.rect.current.initial?.height ?? 0,
+    });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -130,6 +135,7 @@ export default function UserDashboard() {
     }
 
     setActiveSchoolId(null);
+    setActiveCardSize(null);
   };
 
   const handleDeleteConfirm = () => {
@@ -188,6 +194,7 @@ export default function UserDashboard() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => {
             setActiveSchoolId(null);
+            setActiveCardSize(null);
           }}
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -207,6 +214,7 @@ export default function UserDashboard() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
+              className="w-full sm:w-3/4"
             >
                 <motion.button
                   whileHover={{ scale: 1.03, y: -4 }}
@@ -229,7 +237,10 @@ export default function UserDashboard() {
             {activeSchool ? (
               <div
                 className="opacity-70 pointer-events-none"
-                style={{ width: 320 }}
+                style={{
+                  width: activeCardSize?.width,
+                  minHeight: activeCardSize?.height,
+                }}
               >
                 <SchoolCard school={activeSchool} isOverlay={true} />
               </div>

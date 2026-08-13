@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '@/context/AppContext';
 import { LogOut, ChevronDown, Plus, Trash2, GraduationCap, X, AlertTriangle } from 'lucide-react';
@@ -14,6 +15,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [isDeleteStudentDialogOpen, setIsDeleteStudentDialogOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 新增學生表單狀態
@@ -34,6 +36,10 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   return (
@@ -186,188 +192,190 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
         </div>
       </div>
 
-      {/* 新增學生 Modal */}
-      <AnimatePresence>
-        {isAddStudentModalOpen && (
-          <div className="fixed inset-0 z-[60] overflow-y-auto p-4 sm:p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsAddStudentModalOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative mx-auto my-6 flex max-h-[calc(100dvh-3rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl sm:my-10"
-            >
-              <div className="flex justify-between items-center p-6 border-b border-gray-50 flex-shrink-0">
-                <h3 className="text-xl font-extrabold text-gray-800">新增學生檔案</h3>
-                <button
-                  onClick={() => setIsAddStudentModalOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-all"
-                >
-                  <X className="w-5 h-5 text-gray-400" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
-                {/* 暱稱 */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">學生暱稱</label>
-                  <input
-                    type="text"
-                    placeholder="例如：小明"
-                    value={newStudentData.name}
-                    onChange={(e) => setNewStudentData({ ...newStudentData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium"
-                  />
-                </div>
-
-                {/* 出生年月 */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">出生年份</label>
-                    <select
-                      value={newStudentData.birthYear}
-                      onChange={(e) => setNewStudentData({ ...newStudentData, birthYear: parseInt(e.target.value) })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+      {isMounted
+        ? createPortal(
+            <>
+              <AnimatePresence>
+                {isAddStudentModalOpen && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto p-4 sm:p-6">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setIsAddStudentModalOpen(false)}
+                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                      className="relative flex max-h-[calc(100dvh-3rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl"
                     >
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <option key={year} value={year}>{year} 年</option>
-                      ))}
-                    </select>
+                      <div className="flex justify-between items-center p-6 border-b border-gray-50 flex-shrink-0">
+                        <h3 className="text-xl font-extrabold text-gray-800">新增學生檔案</h3>
+                        <button
+                          onClick={() => setIsAddStudentModalOpen(false)}
+                          className="p-2 hover:bg-gray-100 rounded-xl transition-all"
+                        >
+                          <X className="w-5 h-5 text-gray-400" />
+                        </button>
+                      </div>
+
+                      <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2">學生暱稱</label>
+                          <input
+                            type="text"
+                            placeholder="例如：小明"
+                            value={newStudentData.name}
+                            onChange={(e) => setNewStudentData({ ...newStudentData, name: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">出生年份</label>
+                            <select
+                              value={newStudentData.birthYear}
+                              onChange={(e) => setNewStudentData({ ...newStudentData, birthYear: parseInt(e.target.value) })}
+                              className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+                            >
+                              {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                <option key={year} value={year}>{year} 年</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">出生月份</label>
+                            <select
+                              value={newStudentData.birthMonth}
+                              onChange={(e) => setNewStudentData({ ...newStudentData, birthMonth: parseInt(e.target.value) })}
+                              className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+                            >
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                <option key={month} value={month}>{month} 月</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2">性別</label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <button
+                              onClick={() => setNewStudentData({ ...newStudentData, gender: 'boy' })}
+                              className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                                newStudentData.gender === 'boy'
+                                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                  : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                              }`}
+                            >
+                              男孩子
+                            </button>
+                            <button
+                              onClick={() => setNewStudentData({ ...newStudentData, gender: 'girl' })}
+                              className={`py-3 rounded-2xl font-bold transition-all border-2 ${
+                                newStudentData.gender === 'girl'
+                                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                  : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                              }`}
+                            >
+                              女孩子
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-2">申請類型</label>
+                          <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700">
+                            目前僅支援小學申請
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 border-t border-gray-50 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            if (newStudentData.name.trim()) {
+                              void addStudent(newStudentData);
+                              setIsAddStudentModalOpen(false);
+                              setNewStudentData({
+                                name: '',
+                                birthYear: new Date().getFullYear() - 6,
+                                birthMonth: 1,
+                                gender: 'boy',
+                                applicationType: 'primary'
+                              });
+                            }
+                          }}
+                          disabled={!newStudentData.name.trim()}
+                          className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all ${
+                            newStudentData.name.trim()
+                              ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          創建檔案
+                        </button>
+                      </div>
+                    </motion.div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">出生月份</label>
-                    <select
-                      value={newStudentData.birthMonth}
-                      onChange={(e) => setNewStudentData({ ...newStudentData, birthMonth: parseInt(e.target.value) })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl outline-none transition-all font-medium appearance-none"
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {isDeleteStudentDialogOpen && currentStudent && (
+                  <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setIsDeleteStudentDialogOpen(false)}
+                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.94, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.94, y: 20 }}
+                      className="relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-2xl"
                     >
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                        <option key={month} value={month}>{month} 月</option>
-                      ))}
-                    </select>
+                      <div className="mb-6 flex items-center gap-4 text-red-600">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
+                          <AlertTriangle className="h-7 w-7" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">確認刪除學生？</h3>
+                      </div>
+
+                      <p className="mb-8 text-sm leading-7 text-gray-600">
+                        你將刪除「{currentStudent.name}」的學生檔案，已添加學校與申請進度也會一併刪除，此操作無法撤銷。
+                      </p>
+
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setIsDeleteStudentDialogOpen(false)}
+                          className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-600 transition-all hover:bg-gray-200"
+                        >
+                          取消
+                        </button>
+                        <button
+                          onClick={() => {
+                            void removeStudent(currentStudent.id);
+                            setIsDeleteStudentDialogOpen(false);
+                          }}
+                          className="flex-1 rounded-2xl bg-red-600 py-4 font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-700"
+                        >
+                          確認刪除
+                        </button>
+                      </div>
+                    </motion.div>
                   </div>
-                </div>
-
-                {/* 性別 */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">性別</label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => setNewStudentData({ ...newStudentData, gender: 'boy' })}
-                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
-                        newStudentData.gender === 'boy'
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      男孩子
-                    </button>
-                    <button
-                      onClick={() => setNewStudentData({ ...newStudentData, gender: 'girl' })}
-                      className={`py-3 rounded-2xl font-bold transition-all border-2 ${
-                        newStudentData.gender === 'girl'
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                          : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      女孩子
-                    </button>
-                  </div>
-                </div>
-
-                {/* 申請類型 */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">申請類型</label>
-                  <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700">
-                    目前僅支援小學申請
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-gray-50 flex-shrink-0">
-                <button
-                  onClick={() => {
-                    if (newStudentData.name.trim()) {
-                      void addStudent(newStudentData);
-                      setIsAddStudentModalOpen(false);
-                      setNewStudentData({
-                        name: '',
-                        birthYear: new Date().getFullYear() - 6,
-                        birthMonth: 1,
-                        gender: 'boy',
-                        applicationType: 'primary'
-                      });
-                    }
-                  }}
-                  disabled={!newStudentData.name.trim()}
-                  className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all ${
-                    newStudentData.name.trim()
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  創建檔案
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isDeleteStudentDialogOpen && currentStudent && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsDeleteStudentDialogOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              className="relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-2xl"
-            >
-              <div className="mb-6 flex items-center gap-4 text-red-600">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
-                  <AlertTriangle className="h-7 w-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">確認刪除學生？</h3>
-              </div>
-
-              <p className="mb-8 text-sm leading-7 text-gray-600">
-                你將刪除「{currentStudent.name}」的學生檔案，已添加學校與申請進度也會一併刪除，此操作無法撤銷。
-              </p>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setIsDeleteStudentDialogOpen(false)}
-                  className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-600 transition-all hover:bg-gray-200"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => {
-                    void removeStudent(currentStudent.id);
-                    setIsDeleteStudentDialogOpen(false);
-                  }}
-                  className="flex-1 rounded-2xl bg-red-600 py-4 font-bold text-white shadow-lg shadow-red-200 transition-all hover:bg-red-700"
-                >
-                  確認刪除
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                )}
+              </AnimatePresence>
+            </>,
+            document.body
+          )
+        : null}
     </nav>
   );
 }

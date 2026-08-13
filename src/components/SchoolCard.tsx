@@ -77,11 +77,11 @@ export default function SchoolCard({
 
       <div className="mb-1 min-h-[48px] pr-1">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="mt-0.5 h-11 w-11 theme-gradient rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+          <div className="h-11 w-11 flex-shrink-0 self-center rounded-xl theme-gradient flex items-center justify-center shadow-lg">
             <SchoolIcon className="w-6 h-6 text-white" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-[15px] font-extrabold text-gray-800 leading-snug break-words">
+          <div className="min-w-0 flex-1 self-center">
+            <h3 className="break-words whitespace-normal text-[15px] font-extrabold leading-5 text-gray-800">
               {nameZh}
             </h3>
           </div>

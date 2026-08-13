@@ -36,7 +36,12 @@ export default function SortableSchoolCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative" aria-label={`school-card-${id}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative w-full sm:w-3/4"
+      aria-label={`school-card-${id}`}
+    >
       <SchoolCard
         school={school}
         onTaskUpdate={updateStudentSchoolTasks}
