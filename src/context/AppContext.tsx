@@ -8,14 +8,15 @@ import {
   School,
   Student,
   StudentTask,
-  Task,
   formatSchoolForFrontend,
   formatStudentForFrontend,
 } from '@/types';
-import { mockSchools } from '@/lib/mockData';
 import { supabase } from '@/lib/supabase';
+import { formatEventDateLabel } from '@/lib/formatEventDateLabel';
+import { resolveSchoolEventTitleZh } from '@/lib/schoolMetadata';
 
 interface AppContextType {
+  authReady: boolean;
   isLoggedIn: boolean;
   setIsLoggedIn: (value: boolean) => void;
   currentStudent: AppStudent | null;
@@ -37,53 +38,10 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const mockStudents: AppStudent[] = [
-  {
-    ...formatStudentForFrontend({
-      id: 's1',
-      user_id: 'mock-user',
-      name: '小紅',
-      gender: 'girl',
-      birth_date: '2018-08-20',
-      application_type: 'primary',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }),
-    addedSchools: [
-      mockSchools[0],
-      mockSchools[1],
-    ]
-  },
-  {
-    ...formatStudentForFrontend({
-      id: 's2',
-      user_id: 'mock-user',
-      name: '小哲',
-      gender: 'boy',
-      birth_date: '2018-03-12',
-      application_type: 'primary',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }),
-    addedSchools: [
-      mockSchools[2],
-      mockSchools[3],
-      mockSchools[4],
-    ]
-  },
-];
-
-type StudentSchoolRow = {
-  id: string;
-  student_id: string;
-  school_id: string;
-  school: School;
-};
-
-type StudentSchoolTaskRow = {
-  student_school_id: string;
-  task_id: string;
-  completed: boolean | null;
+type StudentApplicationProgressRow = {
+  student_application_id: string;
+  school_event_id: string;
+  status: 'pending' | 'completed' | 'skipped';
   completed_at: string | null;
 };
 
@@ -96,118 +54,70 @@ type SchoolCycleEventRow = {
   start_at: string | null;
 };
 
-type SchoolCycleWithEventsRow = {
+type SchoolCycleRow = {
   id: string;
-  school_events: SchoolCycleEventRow[];
+  school_id: string;
+  academic_year: string;
+  application_level: 'primary' | null;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  school: School | School[] | null;
+  school_events: SchoolCycleEventRow[] | null;
 };
 
-const formatEventTaskTitle = (event: SchoolCycleEventRow) => {
-  if (event.title_zh) return event.title_zh;
-
-  switch (event.event_type) {
-    case 'open_day':
-      return '開放日';
-    case 'info_session':
-      return '簡介會';
-    case 'application_open':
-      return '申請開始';
-    case 'application_deadline':
-      return '申請截止';
-    case 'assessment':
-      return '入學評估';
-    case 'first_interview':
-      return '第一面';
-    case 'second_interview':
-      return '第二面';
-    case 'third_interview':
-      return '第三面';
-    case 'result_release':
-      return '放榜';
-    case 'registration':
-      return '註冊';
-    case 'parent_meeting':
-      return '家長會';
-    case 'waiting_list':
-      return '候補通知';
-    default:
-      return '待辦事項';
-  }
+type StudentApplicationRow = {
+  id: string;
+  student_id: string;
+  school_cycle_id: string;
+  status: string;
+  priority_order: number | null;
+  created_at: string;
+  school_cycle: SchoolCycleRow | SchoolCycleRow[] | null;
 };
 
-const formatEventDateLabel = (event: SchoolCycleEventRow) => {
-  if (event.date_status === 'tbd' || !event.start_at) {
-    return '日期待定';
-  }
-
-  return new Date(event.start_at).toLocaleDateString('zh-HK', {
-    month: '2-digit',
-    day: '2-digit',
-  });
+const getSingleRelation = <T,>(value: T | T[] | null | undefined): T | null => {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
 };
 
-const buildTasksFromSchoolEvents = (schoolId: string, events: SchoolCycleEventRow[]): Task[] =>
+const buildTasksFromSchoolEvents = (
+  schoolId: string,
+  studentApplicationId: string,
+  events: SchoolCycleEventRow[],
+  progressMap: Map<string, StudentApplicationProgressRow>,
+): StudentTask[] =>
   [...events]
     .sort((a, b) => {
       if (a.start_at && b.start_at) return a.start_at.localeCompare(b.start_at);
       return (a.sequence_no ?? 0) - (b.sequence_no ?? 0);
     })
-    .map((event, index) => ({
-      id: event.id,
-      school_id: schoolId,
-      title: formatEventTaskTitle(event),
-      description: formatEventDateLabel(event),
-      sort_order: index + 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }));
-
-const getSchoolOrderStorageKey = (studentId: string) => `KiDays:schoolOrder:${studentId}`;
-
-const applyStoredOrder = (schools: DashboardSchool[], orderedIds: string[]) => {
-  const map = new Map(schools.map((school) => [school.id, school]));
-  const ordered = orderedIds.map((id) => map.get(id)).filter(Boolean);
-  const remaining = schools.filter((school) => !orderedIds.includes(school.id));
-  return [...ordered, ...remaining] as DashboardSchool[];
-};
-
-const applyStoredOrderToStudent = (student: AppStudent) => {
-  try {
-    if (typeof window === 'undefined') return student;
-
-    const raw = window.localStorage.getItem(getSchoolOrderStorageKey(student.id));
-    if (!raw) return student;
-
-    const ids = JSON.parse(raw);
-    if (!Array.isArray(ids)) return student;
-
-    return {
-      ...student,
-      addedSchools: applyStoredOrder(student.addedSchools, ids),
-    };
-  } catch {
-    return student;
-  }
-};
-
-const persistSchoolOrder = (studentId: string, schools: DashboardSchool[]) => {
-  try {
-    if (typeof window === 'undefined') return;
-
-    window.localStorage.setItem(
-      getSchoolOrderStorageKey(studentId),
-      JSON.stringify(schools.map((school) => school.id))
-    );
-  } catch {}
-};
+    .map((event, index) => {
+      const dateStatus = (event.date_status ?? (event.start_at ? 'confirmed' : 'tbd')) as 'confirmed' | 'tbd';
+      const progress = progressMap.get(`${studentApplicationId}:${event.id}`);
+      return {
+        id: event.id,
+        school_id: schoolId,
+        title: resolveSchoolEventTitleZh(event),
+        description: formatEventDateLabel(event.start_at, event.date_status),
+        date_status: dateStatus,
+        completed: progress?.status === 'completed',
+        completed_at: progress?.status === 'completed' ? progress.completed_at : null,
+        sort_order: index + 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    });
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [manualLoggedIn, setManualLoggedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
-  const [students, setStudents] = useState<AppStudent[]>(mockStudents);
-  const [currentStudentId, setCurrentStudentId] = useState<string | null>(mockStudents[0]?.id ?? null);
+  const [students, setStudents] = useState<AppStudent[]>([]);
+  const [currentStudentId, setCurrentStudentId] = useState<string | null>(null);
 
   const currentStudent = students.find((student) => student.id === currentStudentId) || null;
-  const isLoggedIn = Boolean(authUserId) || manualLoggedIn;
+  const isLoggedIn = Boolean(authUserId);
 
   const setCurrentStudent = (student: AppStudent | null) => {
     setCurrentStudentId(student?.id ?? null);
@@ -215,14 +125,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const syncStudents = useCallback(
     (updatedStudents: AppStudent[], nextCurrentStudentId?: string | null) => {
-      const nextStudents = updatedStudents.map(applyStoredOrderToStudent);
       const preferredId = nextCurrentStudentId === undefined ? currentStudentId : nextCurrentStudentId;
       const resolvedCurrentStudentId =
-        preferredId && nextStudents.some((student) => student.id === preferredId)
+        preferredId && updatedStudents.some((student) => student.id === preferredId)
           ? preferredId
-          : nextStudents[0]?.id ?? null;
+          : updatedStudents[0]?.id ?? null;
 
-      setStudents(nextStudents);
+      setStudents(updatedStudents);
       setCurrentStudentId(resolvedCurrentStudentId);
     },
     [currentStudentId]
@@ -265,81 +174,93 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const studentIds = studentsFromDb.map((student) => student.id);
 
-      const { data: studentSchoolRows, error: studentSchoolError } = await supabase
-        .from('student_schools')
+      const { data: applicationRows, error: applicationError } = await supabase
+        .from('student_applications')
         .select(`
           id,
           student_id,
-          school_id,
-          school:schools(*)
+          school_cycle_id,
+          status,
+          priority_order,
+          created_at,
+          school_cycle:school_cycles(
+            id,
+            school_id,
+            academic_year,
+            application_level,
+            status,
+            notes,
+            created_at,
+            updated_at,
+            school:schools(*),
+            school_events(*)
+          )
         `)
         .in('student_id', studentIds);
 
-      if (studentSchoolError) {
-        console.error('Error loading student schools:', studentSchoolError);
+      if (applicationError) {
+        console.error('Error loading student applications:', applicationError);
         return;
       }
 
-      const studentSchools = (studentSchoolRows || []) as StudentSchoolRow[];
-      const schoolIds = Array.from(new Set(studentSchools.map((row) => row.school_id)));
-      const studentSchoolIds = studentSchools.map((row) => row.id);
+      const applications = ((applicationRows || []) as unknown) as StudentApplicationRow[];
+      const applicationIds = applications.map((row) => row.id);
 
-      const [{ data: taskRows, error: taskError }, { data: studentTaskRows, error: studentTaskError }] =
-        await Promise.all([
-          schoolIds.length > 0
-            ? supabase.from('school_tasks').select('*').in('school_id', schoolIds).order('sort_order')
-            : Promise.resolve({ data: [], error: null }),
-          studentSchoolIds.length > 0
-            ? supabase.from('student_school_tasks').select('student_school_id, task_id, completed, completed_at').in('student_school_id', studentSchoolIds)
-            : Promise.resolve({ data: [], error: null }),
-        ]);
+      const { data: progressRows, error: progressError } =
+        applicationIds.length > 0
+          ? await supabase
+              .from('student_application_progress')
+              .select('student_application_id, school_event_id, status, completed_at')
+              .in('student_application_id', applicationIds)
+          : { data: [], error: null };
 
-      if (taskError) {
-        console.error('Error loading school tasks:', taskError);
+      if (progressError) {
+        console.error('Error loading application progress:', progressError);
         return;
       }
 
-      if (studentTaskError) {
-        console.error('Error loading student school tasks:', studentTaskError);
-        return;
-      }
-
-      const taskMap = new Map<string, Task[]>();
-      for (const task of ((taskRows || []) as Task[])) {
-        const currentTasks = taskMap.get(task.school_id) ?? [];
-        currentTasks.push(task);
-        taskMap.set(task.school_id, currentTasks);
-      }
-
-      const studentTaskMap = new Map<string, StudentSchoolTaskRow>();
-      for (const studentTask of ((studentTaskRows || []) as StudentSchoolTaskRow[])) {
-        studentTaskMap.set(`${studentTask.student_school_id}:${studentTask.task_id}`, studentTask);
+      const progressMap = new Map<string, StudentApplicationProgressRow>();
+      for (const progress of ((progressRows || []) as StudentApplicationProgressRow[])) {
+        progressMap.set(`${progress.student_application_id}:${progress.school_event_id}`, progress);
       }
 
       const nextStudents = studentsFromDb.map((student) => {
         const formattedStudent = formatStudentForFrontend(student);
-        const relatedStudentSchools = studentSchools.filter((row) => row.student_id === student.id);
-
-        const addedSchools = relatedStudentSchools.map((row) => {
-          const tasksForSchool = (taskMap.get(row.school_id) ?? []).map((task) => {
-            const studentTask = studentTaskMap.get(`${row.id}:${task.id}`);
-            return {
-              ...task,
-              completed: studentTask?.completed ?? false,
-              completed_at: studentTask?.completed_at ?? null,
-            };
+        const relatedApplications = applications
+          .filter((row) => row.student_id === student.id)
+          .sort((a, b) => {
+            const orderA = a.priority_order ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.priority_order ?? Number.MAX_SAFE_INTEGER;
+            if (orderA !== orderB) return orderA - orderB;
+            return a.created_at.localeCompare(b.created_at);
           });
 
+        const addedSchools = relatedApplications.flatMap((application) => {
+          const schoolCycle = getSingleRelation(application.school_cycle);
+          const school = getSingleRelation(schoolCycle?.school);
+          if (!schoolCycle || !school) return [];
+
           return {
-            ...formatSchoolForFrontend(row.school, tasksForSchool),
-            studentSchoolId: row.id,
+            ...formatSchoolForFrontend(
+              school,
+              buildTasksFromSchoolEvents(
+                school.id,
+                application.id,
+                schoolCycle.school_events ?? [],
+                progressMap,
+              ),
+            ),
+            studentApplicationId: application.id,
+            schoolCycleId: schoolCycle.id,
+            applicationStatus: application.status as DashboardSchool['applicationStatus'],
+            priorityOrder: application.priority_order,
           };
         });
 
-        return applyStoredOrderToStudent({
+        return {
           ...formattedStudent,
           addedSchools,
-        });
+        };
       });
 
       syncStudents(nextStudents);
@@ -348,16 +269,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    setStudents((prev) => prev.map(applyStoredOrderToStudent));
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
     const bootstrapAuth = async () => {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
         console.error('Error getting session:', error);
+        if (isMounted) {
+          setAuthReady(true);
+        }
         return;
       }
 
@@ -365,10 +285,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const userId = data.session?.user?.id ?? null;
       setAuthUserId(userId);
-
-      if (userId) {
-        setManualLoggedIn(false);
-      }
+      setAuthReady(true);
     };
 
     void bootstrapAuth();
@@ -378,11 +295,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const userId = session?.user?.id ?? null;
       setAuthUserId(userId);
-
-      if (userId) {
-        setManualLoggedIn(false);
-      } else {
-        syncStudents(mockStudents, mockStudents[0]?.id ?? null);
+      setAuthReady(true);
+      if (!userId) {
+        syncStudents([], null);
       }
     });
 
@@ -413,17 +328,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setIsLoggedIn = (value: boolean) => {
     if (!value) {
-      setManualLoggedIn(false);
       if (authUserId) {
         void supabase.auth.signOut();
       }
-      return;
-    }
-
-    if (!authUserId) {
-      setManualLoggedIn(true);
     }
   };
+
+  const persistStudentApplicationOrder = useCallback(
+    async (schools: DashboardSchool[]) => {
+      const updates = schools
+        .map((school, index) => ({
+          applicationId: school.studentApplicationId,
+          priorityOrder: index + 1,
+        }))
+        .filter((item): item is { applicationId: string; priorityOrder: number } => Boolean(item.applicationId));
+
+      const results = await Promise.all(
+        updates.map((item) =>
+          supabase
+            .from('student_applications')
+            .update({ priority_order: item.priorityOrder })
+            .eq('id', item.applicationId),
+        ),
+      );
+
+      const failed = results.find((result) => result.error);
+      if (failed?.error) {
+        console.error('Error updating application priority order:', failed.error);
+        return false;
+      }
+
+      return true;
+    },
+    [],
+  );
 
   const addStudent = async (studentData: { 
     name: string; 
@@ -432,57 +370,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     gender: 'boy' | 'girl';
     applicationType: ApplicationType;
   }) => {
+    if (!authUserId) return;
+
     const birthDate = new Date(studentData.birthYear, studentData.birthMonth - 1, 15);
 
-    if (authUserId) {
-      const { data, error } = await supabase
-        .from('students')
-        .insert({
-          user_id: authUserId,
-          name: studentData.name,
-          gender: studentData.gender,
-          birth_date: birthDate.toISOString().slice(0, 10),
-          application_type: studentData.applicationType,
-        })
-        .select('*')
-        .single();
+    const { data, error } = await supabase
+      .from('students')
+      .insert({
+        user_id: authUserId,
+        name: studentData.name,
+        gender: studentData.gender,
+        birth_date: birthDate.toISOString().slice(0, 10),
+        application_type: studentData.applicationType,
+      })
+      .select('*')
+      .single();
 
-      if (error) {
-        console.error('Error creating student:', error);
-        return;
-      }
-
-      const newStudent = formatStudentForFrontend(data as Student);
-      syncStudents([...students, newStudent], currentStudent?.id ?? newStudent.id);
+    if (error) {
+      console.error('Error creating student:', error);
       return;
     }
 
-    const newStudent = formatStudentForFrontend({
-      id: `s${Date.now()}`,
-      user_id: 'mock-user',
-      name: studentData.name,
-      gender: studentData.gender,
-      birth_date: birthDate.toISOString(),
-      application_type: studentData.applicationType,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+    const newStudent = formatStudentForFrontend(data as Student);
 
     syncStudents([...students, newStudent], currentStudent?.id ?? newStudent.id);
   };
 
   const removeStudent = async (studentId: string) => {
-    if (authUserId) {
-      const { error } = await supabase
-        .from('students')
-        .delete()
-        .eq('id', studentId)
-        .eq('user_id', authUserId);
+    if (!authUserId) return;
 
-      if (error) {
-        console.error('Error deleting student:', error);
-        return;
-      }
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('id', studentId)
+      .eq('user_id', authUserId);
+
+    if (error) {
+      console.error('Error deleting student:', error);
+      return;
     }
 
     const updatedStudents = students.filter((student) => student.id !== studentId);
@@ -493,197 +418,152 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addSchoolToStudent = async (school: DashboardSchool) => {
-    if (!currentStudent) return;
+    if (!currentStudent || !authUserId) return;
 
     if (currentStudent.addedSchools.some((item) => item.id === school.id)) {
       return;
     }
 
-    if (authUserId) {
-      const loadLatestCycleEvents = async () => {
-        const { data: cycleRows, error: cycleError } = await supabase
-          .from('school_cycles')
-          .select('id, school_events(id, title_zh, event_type, sequence_no, start_at)')
-          .eq('school_id', school.id)
-          .eq('application_level', 'primary')
-          .order('academic_year', { ascending: false })
-          .order('created_at', { ascending: true })
-          .limit(1);
+    const { data: cycleRows, error: cycleError } = await supabase
+      .from('school_cycles')
+      .select('id, school_events(id, title_zh, event_type, date_status, sequence_no, start_at)')
+      .eq('school_id', school.id)
+      .eq('application_level', 'primary')
+      .order('academic_year', { ascending: false })
+      .order('created_at', { ascending: true })
+      .limit(1);
 
-        if (cycleError) {
-          console.error('Error loading school events for task fallback:', cycleError);
-          return [] as SchoolCycleEventRow[];
-        }
-
-        const latestCycle = (cycleRows?.[0] ?? null) as SchoolCycleWithEventsRow | null;
-        return latestCycle?.school_events ?? [];
-      };
-
-      const { data: relationRow, error: relationError } = await supabase
-        .from('student_schools')
-        .insert({
-          student_id: currentStudent.id,
-          school_id: school.id,
-        })
-        .select('id')
-        .single();
-
-      if (relationError) {
-        console.error('Error adding school to student:', relationError);
-        return;
-      }
-
-      const ensureSchoolTasks = async () => {
-        const latestCycleEvents = await loadLatestCycleEvents();
-
-        const { data: existingTaskRows, error: existingTaskError } = await supabase
-          .from('school_tasks')
-          .select('*')
-          .eq('school_id', school.id)
-          .order('sort_order');
-
-        if (existingTaskError) {
-          console.error('Error loading school tasks after add:', existingTaskError);
-          return [] as Task[];
-        }
-
-        if ((existingTaskRows || []).length > 0) {
-          const fallbackTasks = buildTasksFromSchoolEvents(school.id, latestCycleEvents);
-          return ((existingTaskRows || []) as Task[]).map((task, index) => ({
-            ...task,
-            description: task.description ?? fallbackTasks[index]?.description ?? null,
-          }));
-        }
-
-        const fallbackTasks = buildTasksFromSchoolEvents(school.id, latestCycleEvents);
-
-        if (fallbackTasks.length === 0) {
-          return [] as Task[];
-        }
-
-        const insertPayload = fallbackTasks.map((task) => ({
-          school_id: task.school_id,
-          title: task.title,
-          description: task.description,
-          sort_order: task.sort_order,
-        }));
-
-        const { data: insertedTaskRows, error: insertedTaskError } = await supabase
-          .from('school_tasks')
-          .insert(insertPayload)
-          .select('*')
-          .order('sort_order');
-
-        if (insertedTaskError) {
-          console.error('Error creating fallback school tasks from school events:', insertedTaskError);
-          return fallbackTasks;
-        }
-
-        return ((insertedTaskRows || []) as Task[]).length > 0
-          ? ((insertedTaskRows || []) as Task[])
-          : fallbackTasks;
-      };
-
-      const taskRows = await ensureSchoolTasks();
-
-      const newSchool = {
-        ...formatSchoolForFrontend(school, (taskRows || []).map((task) => ({
-          ...task,
-          completed: false,
-          completed_at: null,
-        }))),
-        studentSchoolId: relationRow.id,
-      };
-
-      updateCurrentStudent((student) => {
-        const newSchools = [...student.addedSchools, newSchool];
-        persistSchoolOrder(student.id, newSchools);
-
-        return {
-          ...student,
-          addedSchools: newSchools,
-        };
-      });
-
+    if (cycleError) {
+      console.error('Error loading school cycle for application create:', cycleError);
       return;
     }
 
-    updateCurrentStudent((student) => {
-      const newSchools = [...student.addedSchools, {
-        ...school,
-        tasks: school.tasks ?? [],
-      }];
-      persistSchoolOrder(student.id, newSchools);
+    const latestCycle = getSingleRelation((cycleRows || []) as SchoolCycleRow[]);
+    if (!latestCycle) {
+      console.error('No school cycle found for school:', school.id);
+      return;
+    }
 
-      return {
-        ...student,
-        addedSchools: newSchools,
-      };
-    });
-  };
+    const latestCycleEvents = latestCycle.school_events ?? [];
 
-  const removeSchoolFromStudent = async (schoolId: string) => {
-    if (!currentStudent) return;
+    const { data: applicationRow, error: applicationError } = await supabase
+      .from('student_applications')
+      .insert({
+        student_id: currentStudent.id,
+        school_cycle_id: latestCycle.id,
+        status: 'planned',
+        priority_order: currentStudent.addedSchools.length + 1,
+      })
+      .select('id, status, priority_order')
+      .single();
 
-    const targetSchool = currentStudent.addedSchools.find((school) => school.id === schoolId);
+    if (applicationError) {
+      console.error('Error creating student application:', applicationError);
+      return;
+    }
 
-    if (authUserId && targetSchool?.studentSchoolId) {
-      const { error } = await supabase
-        .from('student_schools')
-        .delete()
-        .eq('id', targetSchool.studentSchoolId);
+    if (latestCycleEvents.length > 0) {
+      const { error: progressInsertError } = await supabase
+        .from('student_application_progress')
+        .insert(
+          latestCycleEvents.map((event) => ({
+            student_application_id: applicationRow.id,
+            school_event_id: event.id,
+            status: 'pending',
+          })),
+        );
 
-      if (error) {
-        console.error('Error removing school from student:', error);
-        return;
+      if (progressInsertError) {
+        console.error('Error creating default application progress:', progressInsertError);
       }
     }
 
-    updateCurrentStudent((student) => {
-      const newSchools = student.addedSchools.filter((school) => school.id !== schoolId);
-      persistSchoolOrder(student.id, newSchools);
+    const newSchool = {
+      ...formatSchoolForFrontend(
+        school,
+        buildTasksFromSchoolEvents(school.id, applicationRow.id, latestCycleEvents, new Map()),
+      ),
+      studentApplicationId: applicationRow.id,
+      schoolCycleId: latestCycle.id,
+      applicationStatus: applicationRow.status as DashboardSchool['applicationStatus'],
+      priorityOrder: applicationRow.priority_order,
+    };
 
-      return {
-        ...student,
-        addedSchools: newSchools,
-      };
-    });
+    updateCurrentStudent((student) => ({
+      ...student,
+      addedSchools: [...student.addedSchools, newSchool],
+    }));
+  };
+
+  const removeSchoolFromStudent = async (schoolId: string) => {
+    if (!currentStudent || !authUserId) return;
+
+    const targetSchool = currentStudent.addedSchools.find((school) => school.id === schoolId);
+    if (!targetSchool?.studentApplicationId) return;
+
+    const { error } = await supabase
+      .from('student_applications')
+      .delete()
+      .eq('id', targetSchool.studentApplicationId);
+
+    if (error) {
+      console.error('Error removing school from student applications:', error);
+      return;
+    }
+
+    const reorderedSchools = currentStudent.addedSchools
+      .filter((school) => school.id !== schoolId)
+      .map((school, index) => ({
+        ...school,
+        priorityOrder: index + 1,
+      }));
+
+    const orderSaved = await persistStudentApplicationOrder(reorderedSchools);
+    if (!orderSaved) return;
+
+    updateCurrentStudent((student) => ({
+      ...student,
+      addedSchools: reorderedSchools,
+    }));
   };
 
   const reorderStudentSchools = async (reorderedSchools: DashboardSchool[]) => {
-    if (!currentStudent) return;
+    if (!currentStudent || !authUserId) return;
 
-    updateCurrentStudent((student) => {
-      persistSchoolOrder(student.id, reorderedSchools);
+    const normalizedSchools = reorderedSchools.map((school, index) => ({
+      ...school,
+      priorityOrder: index + 1,
+    }));
 
-      return {
-        ...student,
-        addedSchools: reorderedSchools,
-      };
-    });
+    const orderSaved = await persistStudentApplicationOrder(normalizedSchools);
+    if (!orderSaved) return;
+
+    updateCurrentStudent((student) => ({
+      ...student,
+      addedSchools: normalizedSchools,
+    }));
   };
 
   const updateStudentSchoolTasks = async (schoolId: string, tasks: StudentTask[]) => {
-    if (!currentStudent) return;
+    if (!currentStudent || !authUserId) return;
 
     const targetSchool = currentStudent.addedSchools.find((school) => school.id === schoolId);
+    if (!targetSchool?.studentApplicationId) return;
 
-    if (authUserId && targetSchool?.studentSchoolId) {
-      const payload = tasks.map((task) => ({
-        student_school_id: targetSchool.studentSchoolId,
-        task_id: task.id,
-        completed: task.completed,
-        completed_at: task.completed ? task.completed_at ?? new Date().toISOString() : null,
-      }));
+    const payload = tasks.map((task) => ({
+      student_application_id: targetSchool.studentApplicationId,
+      school_event_id: task.id,
+      status: task.completed ? 'completed' : 'pending',
+      completed_at: task.completed ? task.completed_at ?? new Date().toISOString() : null,
+    }));
 
-      const { error } = await supabase
-        .from('student_school_tasks')
-        .upsert(payload, { onConflict: 'student_school_id,task_id' });
+    const { error } = await supabase
+      .from('student_application_progress')
+      .upsert(payload, { onConflict: 'student_application_id,school_event_id' });
 
-      if (error) {
-        console.error('Error updating student school tasks:', error);
-        return;
-      }
+    if (error) {
+      console.error('Error updating student application progress:', error);
+      return;
     }
 
     updateCurrentStudent((student) => ({
@@ -697,6 +577,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        authReady,
         isLoggedIn,
         setIsLoggedIn,
         currentStudent,

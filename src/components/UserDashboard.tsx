@@ -6,7 +6,6 @@ import {
   DndContext,
   DragEndEvent,
   DragOverlay,
-  DragOverEvent,
   DragStartEvent,
   PointerSensor,
   useSensor,
@@ -18,62 +17,12 @@ import {
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, School as SchoolIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { DashboardSchool, SchoolCycleWithEvents, StudentTask, formatSchoolForFrontend } from '@/types';
+import { DashboardSchool, formatSchoolForFrontend } from '@/types';
 import { useSchoolsWithLatestCycle, useSchools } from '@/hooks/useSupabase';
 import SchoolCard from '@/components/SchoolCard';
 import AddSchoolModal from '@/components/AddSchoolModal';
 import DeleteSchoolDialog from '@/components/DeleteSchoolDialog';
 import SortableSchoolCard from '@/components/SortableSchoolCard';
-
-const buildTasksFromLatestCycle = (
-  school: DashboardSchool,
-  cyclesMap: Record<string, SchoolCycleWithEvents[]>
-): StudentTask[] => {
-  const latestCycle = cyclesMap[school.id]?.[0];
-  if (!latestCycle) return school.tasks ?? [];
-
-  const formatDateLabel = (startAt: string | null, dateStatus?: string | null) => {
-    if (dateStatus === 'tbd' || !startAt) return '日期待定';
-    return new Date(startAt).toLocaleDateString('zh-HK', {
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
-  return latestCycle.events.map((event, index) => ({
-    id: event.id,
-    school_id: school.id,
-    title:
-      event.title_zh ??
-      (event.event_type === 'open_day'
-        ? '開放日'
-        : event.event_type === 'info_session'
-          ? '簡介會'
-          : event.event_type === 'application_open'
-            ? '申請開始'
-            : event.event_type === 'application_deadline'
-              ? '申請截止'
-              : event.event_type === 'first_interview'
-                ? '第一面'
-                : event.event_type === 'second_interview'
-                  ? '第二面'
-                  : event.event_type === 'third_interview'
-                    ? '第三面'
-                    : event.event_type === 'result_release'
-                      ? '放榜'
-                      : event.event_type === 'registration'
-                        ? '註冊'
-                        : event.event_type === 'assessment'
-                          ? '入學評估'
-                          : '待辦事項'),
-    description: formatDateLabel(event.start_at, event.date_status),
-    sort_order: index + 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    completed: false,
-    completed_at: null,
-  }));
-};
 
 const dropAnimation = {
   duration: 160,
@@ -169,20 +118,17 @@ export default function UserDashboard() {
     setActiveSchoolId(typeof event.active.id === 'string' ? event.active.id : null);
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (over && active.id !== over.id) {
+      const oldIndex = currentStudentSchools.findIndex((school) => school.id === active.id);
+      const newIndex = currentStudentSchools.findIndex((school) => school.id === over.id);
 
-    const oldIndex = currentStudentSchools.findIndex(s => s.id === active.id);
-    const newIndex = currentStudentSchools.findIndex(s => s.id === over.id);
-
-    if (oldIndex !== newIndex) {
-      const nextSchools = arrayMove(currentStudentSchools, oldIndex, newIndex);
-      void reorderStudentSchools(nextSchools);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        void reorderStudentSchools(arrayMove(currentStudentSchools, oldIndex, newIndex));
+      }
     }
-  };
 
-  const handleDragEnd = (_event: DragEndEvent) => {
     setActiveSchoolId(null);
   };
 
@@ -201,10 +147,7 @@ export default function UserDashboard() {
 
   const handleAddSchool = () => {
     if (selectedSchool && currentStudent) {
-      void addSchoolToStudent({
-        ...selectedSchool,
-        tasks: buildTasksFromLatestCycle(selectedSchool, cyclesMap),
-      });
+      void addSchoolToStudent(selectedSchool);
       closeAddSchoolModal();
     }
   };
@@ -242,7 +185,6 @@ export default function UserDashboard() {
           sensors={sensors}
           collisionDetection={customCollisionDetection}
           onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           onDragCancel={() => {
             setActiveSchoolId(null);

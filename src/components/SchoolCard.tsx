@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { DashboardSchool, StudentTask } from '@/types';
 import { School as SchoolIcon, CheckCircle2, X, Move } from 'lucide-react';
+import { isDatePending, TBD_LABEL } from '@/lib/formatEventDateLabel';
 
 type DragHandleListeners = Record<string, Function>;
 
@@ -123,12 +124,12 @@ export default function SchoolCard({
               </label>
               <span
                 className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
-                  task.description === '日期待定'
+                  isDatePending(task.date_status, undefined, task.description)
                     ? 'bg-amber-50 text-amber-600'
                     : 'bg-gray-100 text-gray-500'
                 }`}
               >
-                {task.description ?? '日期待定'}
+                {task.description ?? TBD_LABEL}
               </span>
             </div>
           </motion.div>

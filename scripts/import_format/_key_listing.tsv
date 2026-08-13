@@ -1,0 +1,95 @@
+school_key	name_zh	name_en	district	type
+DS-01	港大同學會小學	HKUGA Primary School	港島區	直資
+DS-02	聖保羅男女中學附屬小學	St. Paul's Co-Educational College Primary School	港島區	直資
+DS-03	聖保羅書院小學	St. Paul's College Primary School	港島區	直資
+DS-04	漢華中學(附設小學部)	Hon Wah College (Primary Section)	港島區	直資
+DS-05	拔萃男書院附屬小學	Diocesan Boys' School Primary Division	九龍區	直資
+DS-06	保良局林文燦英文小學	Po Leung Kuk Lam Man Chan English Primary School	九龍區	直資
+DS-07	保良局陳守仁小學	Po Leung Kuk Camões Tan Siu Lin Primary School	九龍區	直資
+DS-08	英華小學	Ying Wa Primary School	九龍區	直資
+DS-09	聖瑪加利男女英文中小學	St. Margaret's Co-Educational English Secondary and Primary School	九龍區	直資
+DS-10	福建中學附屬學校	Fukien Secondary School Affiliated School	九龍區	直資
+DS-11	嶺南大學香港同學會小學	Lingnan University Alumni Association (Hong Kong) Primary School	九龍區	直資
+DS-12	地利亞(閩僑)英文小學	Delia (Man Kiu) English Primary School	新界區	直資
+DS-13	和富慈善基金李宗德小學	W F Joseph Lee Primary School	新界區	直資
+DS-14	保良局香港道教聯合會圓玄小學	Po Leung Kuk Hong Kong Taoist Association Yuen Yuen Primary School	新界區	直資
+DS-15	保良局陸慶濤小學	Po Leung Kuk Luk Hing Too Primary School	新界區	直資
+DS-16	香港浸會大學附屬學校王錦輝中小學	HKBUAS Wong Kam Fai Secondary and Primary School	新界區	直資
+DS-17	香港華人基督教聯會真道書院(小學部)	HKCCCU Logos Academy (Primary Section)	新界區	直資
+DS-18	培僑書院	Pui Kiu College	新界區	直資
+DS-19	基督教香港信義會宏信書院	ELCHK Lutheran Academy	新界區	直資
+DS-20	播道書院	Evangel College	新界區	直資
+DS-21	優才(楊殷有娣)書院(小學部)	G.T. (Ellen Yeung) College (Primary Section)	新界區	直資
+PRV-01	香港真光中學(小學部)	Hong Kong True Light College (Primary Section)	港島區	私立
+PRV-02	高主教書院小學部	Raimondi College Primary Section	港島區	私立
+PRV-03	救恩學校	Kau Yan School	港島區	私立
+PRV-04	聖士提反書院附屬小學	St. Stephen's College Preparatory School	港島區	私立
+PRV-05	聖保祿學校(小學部)	St. Paul's Convent School (Primary Section)	港島區	私立
+PRV-06	聖嘉勒小學	St. Clare's Primary School	港島區	私立
+PRV-07	聖類斯中學(小學部)	St. Louis School (Primary Section)	港島區	私立
+PRV-08	嘉諾撒聖心學校私立部	Sacred Heart Canossian School Private Section	港島區	私立
+PRV-09	瑪利曼小學	Marymount Primary School	港島區	私立
+PRV-10	蘇浙小學	Kiangsu & Chekiang Primary School	港島區	私立
+PRV-11	九龍方方樂趣英文小學	Funful English Primary School	九龍區	私立
+PRV-12	九龍真光中學(小學部)	Kowloon True Light School (Primary Section)	九龍區	私立
+PRV-13	九龍塘宣道小學	Alliance Primary School, Kowloon Tong	九龍區	私立
+PRV-14	九龍塘學校(小學部)	Kowloon Tong School (Primary Section)	九龍區	私立
+PRV-15	九龍禮賢學校	Kowloon Rhenish School	九龍區	私立
+PRV-16	民生書院小學	Munsang College Primary School	九龍區	私立
+PRV-17	拔萃女小學	Diocesan Girls' Junior School	九龍區	私立
+PRV-18	香港培正小學	Pui Ching Primary School	九龍區	私立
+PRV-19	香港培道小學	Pui To Primary School	九龍區	私立
+PRV-20	神召第一小學暨幼稚園	First Assembly of God Primary School and Kindergarten	九龍區	私立
+PRV-21	神召會德萃書院(小學部)	Assembly of God St. Hilary's College (Primary)	九龍區	私立
+PRV-22	國際基督教優質音樂中學暨小學	International Christian Quality Music Secondary and Primary School	九龍區	私立
+PRV-23	崇真小學暨幼稚園	Tsung Tsin Primary School and Kindergarten	九龍區	私立
+PRV-24	啟思小學	Creative Primary School	九龍區	私立
+PRV-25	新會商會港青基信學校	San Wui Commercial Society YMCA of Hong Kong Christian School	九龍區	私立
+PRV-26	聖三一堂小學	Holy Trinity Primary School	九龍區	私立
+PRV-27	聖方濟各英文小學	St. Francis of Assisi's English Primary School	九龍區	私立
+PRV-28	聖母小學	Our Lady's Primary School	九龍區	私立
+PRV-29	聖若望英文書院(小學部)	St. Johannes College (Primary Section)	九龍區	私立
+PRV-30	聖若瑟英文小學	St. Joseph's Anglo-Chinese Primary School	九龍區	私立
+PRV-31	德望小學暨幼稚園	Good Hope Primary School cum Kindergarten	九龍區	私立
+PRV-32	德萃小學(旺角)	St. Hilary's Primary School (Mong Kok)	九龍區	私立
+PRV-33	德雅小學	Tak Nga Primary School	九龍區	私立
+PRV-34	安菲爾聖鮑思高冠英學校	Amphil St. Bosco Kwun Ying School	新界區	私立
+PRV-35	玫瑰蕾小學	Rosebud Primary School	新界區	私立
+PRV-36	朗思英文小學	Longsi English Primary School	新界區	私立
+PRV-37	基督教香港信義會啟信學校	ELCHK Kai Shun School	新界區	私立
+PRV-38	康樂中英文小學	Hon Lok Anglo-Chinese Primary School	新界區	私立
+PRV-39	鄉師自然學校	Gaia School	新界區	私立
+PRV-40	道爾頓學校(屯門分校)	Dalton School Hong Kong (Tuen Mun Campus)	新界區	私立
+PRV-41	漢師德萃學校(大埔)	Hanlin St. Hilary's School	新界區	私立
+PRV-42	銀礦灣學校	Silvermine Bay School	新界區	私立
+PRV-43	德萃小學(大埔)	St. Hilary's Primary (Tai Po)	新界區	私立
+PRV-44	樂善堂梁植偉紀念私立小學	Lok Sin Tong Leung Chik Wai Memorial Private Primary School	新界區	私立
+PRV-45	激活英文小學	Gigamind English Primary School	新界區	私立
+PIS-01	滬江維多利亞學校(小學部)	Victoria Shanghai Academy (Primary Section)	港島區	私立獨立
+PIS-02	弘立書院(小學部)	The Independent Schools Foundation Academy (Primary Section)	港島區	私立獨立
+PIS-03	保良局蔡繼有學校	Po Leung Kuk Choi Kai Yau School	九龍區	私立獨立
+PIS-04	啟新書院	Renaissance College	新界區	私立獨立
+PIS-05	智新書院	Discovery College	新界區	私立獨立
+PIS-06	基督教國際學校	International Christian School	新界區	私立獨立
+PIS-07	耀中國際學校(小學部)	Yew Chung International School of Hong Kong (Primary)	九龍區	私立獨立
+PIS-08	香港學堂	Hong Kong Academy	新界區	私立獨立
+INT-01	山頂小學	Peak School	港島區	國際
+INT-02	白普理小學	Bradbury School	港島區	國際
+INT-03	沙田小學	Sha Tin Junior School	新界區	國際
+INT-04	清水灣小學	Clearwater Bay School	新界區	國際
+INT-05	堅尼地小學	Kennedy School	港島區	國際
+INT-06	鰂魚涌小學	Quarry Bay School	港島區	國際
+INT-07	九龍小學	Kowloon Junior School	九龍區	國際
+INT-08	畢架山小學	Beacon Hill School	九龍區	國際
+INT-09	漢基國際學校	Chinese International School	港島區	國際
+INT-10	香港國際學校(小學部)	Hong Kong International School (Primary Section)	港島區	國際
+INT-11	加拿大國際學校	Canadian International School of Hong Kong	港島區	國際
+INT-12	哈羅香港國際學校	Harrow International School Hong Kong	新界區	國際
+INT-13	德威國際學校	Dulwich International High School	新界區	國際
+INT-14	新加坡國際學校	Singapore International School (Hong Kong)	港島區	國際
+INT-15	啟歷學校	Kellett School	港島區	國際
+INT-16	美國國際學校	American International School	九龍區	國際
+INT-17	宣道國際學校	Christian Alliance International School	九龍區	國際
+INT-18	愉景灣國際學校	Discovery Bay International School	新界區	國際
+INT-19	諾德安達國際學校	Nord Anglia International School Hong Kong	新界區	國際
+INT-20	香港威雅學校	Wycombe Abbey School Hong Kong	新界區	國際

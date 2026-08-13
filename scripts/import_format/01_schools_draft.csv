@@ -1,0 +1,95 @@
+school_key,name_zh,name_en,district,gender,school_net,school_type,address_zh,website,phone,email
+DS-01,港大同學會小學,HKUGA Primary School,港島區,coed,,direct_subsidy,香港柴灣怡盛街9號,https://www.hkugaps.edu.hk,2202 3922,info@hkugaps.edu.hk
+DS-02,聖保羅男女中學附屬小學,St. Paul's Co-Educational College Primary School,港島區,coed,,direct_subsidy,香港黃竹坑南風徑11號,https://www.spccps.edu.hk/,2526 1882,spccps@ps.spcc.edu.hk
+DS-03,聖保羅書院小學,St. Paul's College Primary School,港島區,boys,,direct_subsidy,香港域多利道777號,http://www.spc-ps.edu.hk,3710 1777,office@spc-ps.edu.hk
+DS-04,漢華中學(附設小學部),Hon Wah College (Primary Section),港島區,coed,,direct_subsidy,香港小西灣富欣道3號,https://www.honwah.edu.hk,2817 1746,info@honwah.edu.hk
+DS-05,拔萃男書院附屬小學,Diocesan Boys' School Primary Division,九龍區,boys,,direct_subsidy,九龍旺角亞皆老街131號,https://www.dbspd.edu.hk,3159 4200,dbspd@dbs.edu.hk
+DS-06,保良局林文燦英文小學,Po Leung Kuk Lam Man Chan English Primary School,九龍區,coed,,direct_subsidy,九龍土瓜灣上鄉道24號 (P1-3校舍) / 九龍農圃道2號 (P4-6校舍),https://plklmceps.edu.hk/,2712 1270 (上鄉道) / 2755 7799 (農圃道),email@plklmceps.edu.hk
+DS-07,保良局陳守仁小學,Po Leung Kuk Camões Tan Siu Lin Primary School,九龍區,coed,,direct_subsidy,九龍油麻地海庭道六號,https://www.plkctslps.edu.hk,2367 3318,info@plkctslps.edu.hk
+DS-08,英華小學,Ying Wa Primary School,九龍區,boys,,direct_subsidy,九龍深水埗英華街三號,http://www.yingwaps.edu.hk/,2728 3320,school@yingwa.hk
+DS-09,聖瑪加利男女英文中小學,St. Margaret's Co-Educational English Secondary and Primary School,九龍區,coed,,direct_subsidy,九龍深水埗深旺道33號,http://www.smcesps.edu.hk,2396 6675,enquiry@smcesps.edu.hk
+DS-10,福建中學附屬學校,Fukien Secondary School Affiliated School,九龍區,coed,,direct_subsidy,九龍觀塘油塘邨第二期,https://www.fssas.edu.hk,2606 0670,info@fssas.edu.hk
+DS-11,嶺南大學香港同學會小學,Lingnan University Alumni Association (Hong Kong) Primary School,九龍區,coed,,direct_subsidy,九龍深水埗白田街33號,https://www.luaaps.edu.hk,2776 8453,info@luaaps.edu.hk
+DS-12,地利亞(閩僑)英文小學,Delia (Man Kiu) English Primary School,新界區,coed,,direct_subsidy,新界青衣長安邨第二期,http://www.deliamk.edu.hk,2432 5123,ty@deliagroup.edu.hk
+DS-13,和富慈善基金李宗德小學,W F Joseph Lee Primary School,新界區,coed,,direct_subsidy,新界天水圍101區天暉路9號,http://www.wfjlps.edu.hk,3401 4995,info@web.wfjlps.edu.hk
+DS-14,保良局香港道教聯合會圓玄小學,Po Leung Kuk Hong Kong Taoist Association Yuen Yuen Primary School,新界區,coed,,direct_subsidy,新界屯門青山公路青海圍26號,http://www.yyps.edu.hk,2450 1588,info@yyps.edu.hk
+DS-15,保良局陸慶濤小學,Po Leung Kuk Luk Hing Too Primary School,新界區,coed,,direct_subsidy,新界將軍澳寶林邨,http://www.plklht.edu.hk,2701 0011,info@plklht.edu.hk
+DS-16,香港浸會大學附屬學校王錦輝中小學,HKBUAS Wong Kam Fai Secondary and Primary School,新界區,coed,,direct_subsidy,新界沙田石門安睦里6號,http://www.hkbuas.edu.hk,2637 2277,a-school-ps@hkbuas.edu.hk
+DS-17,香港華人基督教聯會真道書院(小學部),HKCCCU Logos Academy (Primary Section),新界區,coed,,direct_subsidy,新界將軍澳嶺光街5號 (小學部) / 勤學里1號 (中學部),http://www.logosacademy.edu.hk,2337 2126,info@logosacademy.edu.hk
+DS-18,培僑書院,Pui Kiu College,新界區,coed,,direct_subsidy,新界沙田大圍大圍新村路1號,http://www.puikiucollege.edu.hk,2602 3166,info@puikiu.edu.hk
+DS-19,基督教香港信義會宏信書院,ELCHK Lutheran Academy,新界區,coed,,direct_subsidy,新界元朗馬田欖口村路25號,http://www.luac.edu.hk,8208 2092,info@luac.edu.hk
+DS-20,播道書院,Evangel College,新界區,coed,,direct_subsidy,新界將軍澳至善街7號,https://www.evangel.edu.hk,2366 1802,admission@evangel.edu.hk
+DS-21,優才(楊殷有娣)書院(小學部),G.T. (Ellen Yeung) College (Primary Section),新界區,coed,,direct_subsidy,新界將軍澳調景嶺嶺光街10號 (將軍澳校舍) / 九龍旺角洗衣街31號 (旺角校舍),https://gtschool.hk/,2535 6869 (將軍澳) / 2384 9855 (旺角),pri-tko@gtcollege.edu.hk
+PRV-01,香港真光中學(小學部),Hong Kong True Light College (Primary Section),港島區,coed,,private,香港大坑道50號,https://www.hktlps.edu.hk,2576 5716,info@hktlps.edu.hk
+PRV-02,高主教書院小學部,Raimondi College Primary Section,港島區,coed,,private,香港灣仔司徒拔道1號E,https://www.rcps.edu.hk,2522 1826,info@rcps.edu.hk
+PRV-03,救恩學校,Kau Yan School,港島區,coed,,private,香港西營盤高街97B號,https://www.kyps.edu.hk,2803 0304,info@kyps.edu.hk
+PRV-04,聖士提反書院附屬小學,St. Stephen's College Preparatory School,港島區,coed,,private,香港赤柱黃麻角道30號,https://www.sscps.edu.hk,2813 0272,info@sscps.edu.hk
+PRV-05,聖保祿學校(小學部),St. Paul's Convent School (Primary Section),港島區,girls,,private,香港銅鑼灣糖街140號,https://www.spcs.edu.hk/pri/,2576 3423,spcs@spcs.edu.hk
+PRV-06,聖嘉勒小學,St. Clare's Primary School,港島區,girls,,private,香港般咸道光景台3-6號,https://www.stclare.edu.hk,2547 2751,info@stclare.edu.hk
+PRV-07,聖類斯中學(小學部),St. Louis School (Primary Section),港島區,boys,,private,香港第三街179號,https://www.slsps.edu.hk,2547 2306,info@slsps.edu.hk
+PRV-08,嘉諾撒聖心學校私立部,Sacred Heart Canossian School Private Section,港島區,girls,,private,香港半山堅道34號,https://www.shcsps.edu.hk,2524 8679,shcsps@shcsps.edu.hk
+PRV-09,瑪利曼小學,Marymount Primary School,港島區,girls,,private,香港跑馬地藍塘道123號,https://www.marymountprimary.edu.hk,2572 2141,info@marymountprimary.edu.hk
+PRV-10,蘇浙小學,Kiangsu & Chekiang Primary School,港島區,coed,,private,香港北角清華街30號,https://www.kcs.edu.hk,2570 4108,info@kcs.edu.hk
+PRV-11,九龍方方樂趣英文小學,Funful English Primary School,九龍區,coed,,private,九龍塘金巴倫道1號,https://www.funful.edu.hk,2337 1908,info@funful.edu.hk
+PRV-12,九龍真光中學(小學部),Kowloon True Light School (Primary Section),九龍區,coed,,private,九龍窩打老道115號,https://www.ktlsps.edu.hk,2336 1933,info@ktlsps.edu.hk
+PRV-13,九龍塘宣道小學,"Alliance Primary School, Kowloon Tong",九龍區,coed,,private,九龍塘蘭開夏道2號,https://www.ktaps.edu.hk,2336 3232,info@ktaps.edu.hk
+PRV-14,九龍塘學校(小學部),Kowloon Tong School (Primary Section),九龍區,coed,,private,九龍塘金巴倫道28號,https://www.ktsps.edu.hk,2336 3802,ktsps@ktsps.edu.hk
+PRV-15,九龍禮賢學校,Kowloon Rhenish School,九龍區,coed,,private,九龍又一村石竹路2A,https://krs.edu.hk/,2380 6011 / 2380 3936,info@krs.edu.hk
+PRV-16,民生書院小學,Munsang College Primary School,九龍區,coed,,private,九龍城東寶庭道8號,https://munsang.edu.hk/primary/,3655 3400,info@munsang.edu.hk
+PRV-17,拔萃女小學,Diocesan Girls' Junior School,九龍區,girls,,private,九龍佐敦道1號,https://www.dgjs.edu.hk,2277 9100,dgjs@dgjs.edu.hk
+PRV-18,香港培正小學,Pui Ching Primary School,九龍區,coed,,private,九龍窩打老道80號,https://www.pcps.edu.hk,2714 2939,info@pcps.edu.hk
+PRV-19,香港培道小學,Pui To Primary School,九龍區,coed,,private,九龍馬頭圍福祥街3號,https://www.pui-to.edu.hk,2711 2933,info@pui-to.edu.hk
+PRV-20,神召第一小學暨幼稚園,First Assembly of God Primary School and Kindergarten,九龍區,coed,,private,九龍亞皆老街123號,https://www.fagps.edu.hk,2760 8828,info@fagps.edu.hk
+PRV-21,神召會德萃書院(小學部),Assembly of God St. Hilary's College (Primary),九龍區,coed,,private,九龍慈雲山蒲崗村道170號,https://www.sthilaryscollege.edu.hk,2326 9000,enquiry@sthilaryscollege.edu.hk
+PRV-22,國際基督教優質音樂中學暨小學,International Christian Quality Music Secondary and Primary School,九龍區,coed,,private,九龍鑽石山蒲崗村道182號,https://www.icqm.edu.hk,2777 3828,info@icqm.edu.hk
+PRV-23,崇真小學暨幼稚園,Tsung Tsin Primary School and Kindergarten,九龍區,coed,,private,九龍深水埗大埔道58號,https://www.ttpskg.edu.hk,2777 3679,info@ttpskg.edu.hk
+PRV-24,啟思小學,Creative Primary School,九龍區,coed,,private,九龍塘牛津道2A號,https://www.cps.edu.hk,2336 0233,cps@cps.edu.hk
+PRV-25,新會商會港青基信學校,San Wui Commercial Society YMCA of Hong Kong Christian School,九龍區,coed,,private,九龍深水埗廣利道5號,https://www.cs.edu.hk,2361 3303,info@cs.edu.hk
+PRV-26,聖三一堂小學,Holy Trinity Primary School,九龍區,coed,,private,九龍九龍城富寧街57號,https://www.htps.edu.hk,2711 0928,info@htps.edu.hk
+PRV-27,聖方濟各英文小學,St. Francis of Assisi's English Primary School,九龍區,coed,,private,九龍石硤尾石硤尾街280號,https://www.sfaeps.edu.hk,2777 0988,info@sfaeps.edu.hk
+PRV-28,聖母小學,Our Lady's Primary School,九龍區,girls,,private,九龍黃大仙沙田坳道116號,https://www.olps.edu.hk,2320 2200,olps@olps.edu.hk
+PRV-29,聖若望英文書院(小學部),St. Johannes College (Primary Section),九龍區,coed,,private,九龍塘窩打老道143號,https://stjohannes.edu.hk,2336 2933,info@stjohannes.edu.hk
+PRV-30,聖若瑟英文小學,St. Joseph's Anglo-Chinese Primary School,九龍區,boys,,private,九龍觀塘觀塘道57號,https://www.sjacps.edu.hk,2325 5851,sjacps@sjacps.edu.hk
+PRV-31,德望小學暨幼稚園,Good Hope Primary School cum Kindergarten,九龍區,girls,,private,九龍扎山道381號,https://www.ghps.edu.hk,2327 5294,ghps@ghps.edu.hk
+PRV-32,德萃小學(旺角),St. Hilary's Primary School (Mong Kok),九龍區,coed,,private,九龍旺角西洋菜北街468號,https://www.sthilarys.edu.hk,2390 0818,info@sthilarys.edu.hk
+PRV-33,德雅小學,Tak Nga Primary School,九龍區,girls,,private,九龍深水埗達之路18號,https://www.tnps.edu.hk,2380 6580,info@tnps.edu.hk
+PRV-34,安菲爾聖鮑思高冠英學校,Amphil St. Bosco Kwun Ying School,新界區,coed,,private,新界元朗米埔新村,http://www.kwunying.edu.hk,2476 2345,info@kwunying.edu.hk
+PRV-35,玫瑰蕾小學,Rosebud Primary School,新界區,coed,,private,新界荃灣永順街38號,https://www.rosebud.edu.hk,2406 7300,info@rosebud.edu.hk
+PRV-36,朗思英文小學,Longsi English Primary School,新界區,coed,,private,新界元朗水邊圍邨,https://www.longsi.edu.hk,2478 2233,info@longsi.edu.hk
+PRV-37,基督教香港信義會啟信學校,ELCHK Kai Shun School,新界區,coed,,private,新界元朗天水圍天耀邨,http://www.kaishun.edu.hk,2446 3320,info@kaishun.edu.hk
+PRV-38,康樂中英文小學,Hon Lok Anglo-Chinese Primary School,新界區,coed,,private,新界屯門建生邨,http://www.honlok.edu.hk,2465 7788,info@honlok.edu.hk
+PRV-39,鄉師自然學校,Gaia School,新界區,coed,,private,新界屯門新墟井頭上村131地段,https://www.gaiaschool.edu.hk,2650 0588,enquiry@gaiaschool.edu.hk
+PRV-40,道爾頓學校(屯門分校),Dalton School Hong Kong (Tuen Mun Campus),新界區,coed,,private,新界屯門龍門路45號,https://www.dalton.org.hk,2618 8866,admissions@dalton.org.hk
+PRV-41,漢師德萃學校(大埔),Hanlin St. Hilary's School,新界區,coed,,private,新界大埔運頭塘邨,https://www.hanlin.edu.hk,2661 0088,info@hanlin.edu.hk
+PRV-42,銀礦灣學校,Silvermine Bay School,新界區,coed,,private,新界大嶼山梅窩銀礦灣路,https://www.silverminebay.edu.hk,2984 0366,info@silverminebay.edu.hk
+PRV-43,德萃小學(大埔),St. Hilary's Primary (Tai Po),新界區,coed,,private,新界大埔太和邨,https://www.sthilarys-tp.edu.hk,2665 8828,tp@sthilarys.edu.hk
+PRV-44,樂善堂梁植偉紀念私立小學,Lok Sin Tong Leung Chik Wai Memorial Private Primary School,新界區,coed,,private,新界荃灣石圍角邨,http://www.lstlcwps.edu.hk,2414 3333,info@lstlcwps.edu.hk
+PRV-45,激活英文小學,Gigamind English Primary School,新界區,coed,,private,新界天水圍天龍路9號,https://www.gigamind.edu.hk,2446 9883,info@gigamind.edu.hk
+PIS-01,滬江維多利亞學校(小學部),Victoria Shanghai Academy (Primary Section),港島區,coed,,pis,香港黃竹坑深灣道19號,https://www.vsa.edu.hk,3402 1000,enquiries@vsa.edu.hk
+PIS-02,弘立書院(小學部),The Independent Schools Foundation Academy (Primary Section),港島區,coed,,pis,香港薄扶林鋼綫灣道1號,https://academy.isf.edu.hk,2202 2000,admissions@isf.edu.hk
+PIS-03,保良局蔡繼有學校,Po Leung Kuk Choi Kai Yau School,九龍區,coed,,pis,九龍琵琶山郝德傑道6號,http://www.cky.edu.hk,2148 2052,info@cky.edu.hk
+PIS-04,啟新書院,Renaissance College,新界區,coed,,pis,新界馬鞍山恆明街20號,https://renaissance.edu.hk,2633 1888,admissions@renaissance.edu.hk
+PIS-05,智新書院,Discovery College,新界區,coed,,pis,新界大嶼山愉景灣澄湖畔路38號,https://discovery.edu.hk,2987 7333,admissions@discovery.edu.hk
+PIS-06,基督教國際學校,International Christian School,新界區,coed,,pis,新界沙田安耀街2號,https://www.ics.edu.hk,2638 8868,admissions@ics.edu.hk
+PIS-07,耀中國際學校(小學部),Yew Chung International School of Hong Kong (Primary),九龍區,coed,,pis,九龍塘多福道3號,https://www.ycis-hk.com,2338 0711,admission@ycis-hk.com
+PIS-08,香港學堂,Hong Kong Academy,新界區,coed,,pis,新界西貢惠民路33號,https://www.hka.edu.hk,2548 1000,admissions@hka.edu.hk
+INT-01,山頂小學,Peak School,港島區,coed,,international,香港山頂賓吉道20號,https://peak.esf.edu.hk,2522 2266,enquiry@peak.esf.edu.hk
+INT-02,白普理小學,Bradbury School,港島區,coed,,international,香港跑馬地司徒拔道43號,https://bradbury.esf.edu.hk,2572 1300,enquiry@bradbury.esf.edu.hk
+INT-03,沙田小學,Sha Tin Junior School,新界區,coed,,international,新界沙田火炭麗禾里11號,https://stjs.esf.edu.hk,2691 1888,enquiry@stjs.esf.edu.hk
+INT-04,清水灣小學,Clearwater Bay School,新界區,coed,,international,新界西貢清水灣道6號,https://cwbs.esf.edu.hk,2719 6888,enquiry@cwbs.esf.edu.hk
+INT-05,堅尼地小學,Kennedy School,港島區,coed,,international,香港薄扶林沙灣徑19號,https://kennedy.esf.edu.hk,2817 5900,enquiry@kennedy.esf.edu.hk
+INT-06,鰂魚涌小學,Quarry Bay School,港島區,coed,,international,香港鰂魚涌英皇道986號,https://qbs.esf.edu.hk,2566 4141,enquiry@qbs.esf.edu.hk
+INT-07,九龍小學,Kowloon Junior School,九龍區,coed,,international,九龍何文田巴富街20號,https://kjs.esf.edu.hk,2714 6300,enquiry@kjs.esf.edu.hk
+INT-08,畢架山小學,Beacon Hill School,九龍區,coed,,international,九龍塘義德道23號,https://bhs.esf.edu.hk,2336 5221,enquiry@bhs.esf.edu.hk
+INT-09,漢基國際學校,Chinese International School,港島區,coed,,international,香港北角寶馬山校園徑1號,https://www.cis.edu.hk,2510 7288,cis_info@cis.edu.hk
+INT-10,香港國際學校(小學部),Hong Kong International School (Primary Section),港島區,coed,,international,香港淺水灣南灣坊23號,https://www.hkis.edu.hk,2812 5000,admissions@hkis.edu.hk
+INT-11,加拿大國際學校,Canadian International School of Hong Kong,港島區,coed,,international,香港香港仔南朗山道36號,https://www.cdnis.edu.hk,2525 7088,schoolinfo@cdnis.edu.hk
+INT-12,哈羅香港國際學校,Harrow International School Hong Kong,新界區,coed,,international,新界屯門青盈路38號,https://www.harrowhongkong.hk,2824 9099,admissions@harrowhongkong.hk
+INT-13,德威國際學校,Dulwich International High School,新界區,coed,,international,新界大埔天賦海灣,https://www.dulwich.org.hk,2988 8088,admissions@dulwich.org.hk
+INT-14,新加坡國際學校,Singapore International School (Hong Kong),港島區,coed,,international,香港黃竹坑南朗山道23號,https://www.singapore.edu.hk,2872 0266,admissions@singapore.edu.hk
+INT-15,啟歷學校,Kellett School,港島區,coed,,international,香港薄扶林灣峽道7號,https://www.kellettschool.com,3120 5700,admissions@kellettschool.com
+INT-16,美國國際學校,American International School,九龍區,coed,,international,九龍塘窩打老道125號,https://www.ais.edu.hk,2336 3812,admissions@ais.edu.hk
+INT-17,宣道國際學校,Christian Alliance International School,九龍區,coed,,international,九龍長沙灣瓊林街33號,https://www.cais.edu.hk,3995 8800,admissions@cais.edu.hk
+INT-18,愉景灣國際學校,Discovery Bay International School,新界區,coed,,international,新界大嶼山愉景灣海澄湖畔路,https://www.dbis.edu.hk,2987 7333,admissions@dbis.edu.hk
+INT-19,諾德安達國際學校,Nord Anglia International School Hong Kong,新界區,coed,,international,新界將軍澳至善街,https://www.nordangliaeducation.com,3958 1300,admissions@nais.hk
+INT-20,香港威雅學校,Wycombe Abbey School Hong Kong,新界區,coed,,international,新界屯門掃管笏,https://www.wycombeabbey.edu.hk,2129 8300,admissions@wycombeabbey.edu.hk

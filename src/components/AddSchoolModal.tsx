@@ -3,7 +3,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarDays, Search, X } from 'lucide-react';
 import { DashboardSchool, SchoolCycleWithEvents } from '@/types';
-import { formatSchoolEventLabel } from '@/hooks/useSupabase';
+import { formatEventDateLabel } from '@/lib/formatEventDateLabel';
+import {
+  formatSchoolGenderLabel,
+  formatSchoolTypeLabel,
+  resolveSchoolEventTitleZh,
+} from '@/lib/schoolMetadata';
 
 interface AddSchoolModalProps {
   isOpen: boolean;
@@ -121,12 +126,12 @@ export default function AddSchoolModal({
                               ) : null}
                               {school.school_type ? (
                                 <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 border border-indigo-100">
-                                  {school.school_type}
+                                  {formatSchoolTypeLabel(school.school_type)}
                                 </span>
                               ) : null}
                               {school.gender_policy ?? school.gender ? (
                                 <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-600 border border-pink-100">
-                                  {school.gender_policy ?? school.gender}
+                                  {formatSchoolGenderLabel(school.gender_policy ?? school.gender)}
                                 </span>
                               ) : null}
                             </div>
@@ -219,13 +224,7 @@ export default function AddSchoolModal({
                           </div>
                         ) : (
                           latestCycle.events.map((event) => {
-                            const dateText = event.start_at
-                              ? new Date(event.start_at).toLocaleDateString('zh-HK', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                })
-                              : '待定'
+                            const dateText = formatEventDateLabel(event.start_at, event.date_status)
 
                             return (
                               <div
@@ -235,12 +234,10 @@ export default function AddSchoolModal({
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
                                     <div className="truncate text-xs font-bold text-gray-700">
-                                      {event.title_zh ??
-                                        formatSchoolEventLabel(event.event_type, event.sequence_no)}
+                                      {resolveSchoolEventTitleZh(event)}
                                     </div>
                                     <div className="mt-1 truncate text-[10px] text-gray-400">
-                                      {event.event_type}
-                                      {event.sequence_no ? ` · 第 ${event.sequence_no} 次` : ''}
+                                      招生節點{event.sequence_no ? ` · 序號 ${event.sequence_no}` : ''}
                                     </div>
                                   </div>
                                   <div className="shrink-0 rounded-xl bg-indigo-50 px-2.5 py-1.5 text-right text-[11px] font-semibold text-indigo-700">

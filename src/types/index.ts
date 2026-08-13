@@ -7,6 +7,7 @@ export type SchoolType =
   | 'aided'
   | 'direct_subsidy'
   | 'private'
+  | 'pis'
   | 'international'
   | 'special';
 
@@ -78,7 +79,15 @@ export interface Task {
   id: string;
   school_id: string;
   title: string;
+  /** Date label displayed on the card row (MM/DD) or TBD_LABEL. */
   description: string | null;
+  /**
+   * Structured mirror of the underlying school_event.date_status.
+   * Prefer this field for conditional UI (badges, colors) instead of
+   * string-matching against `description`, since the label text may change.
+   * Legacy tasks (not derived from a school_event) may omit this field.
+   */
+  date_status?: SchoolEventDateStatus | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -111,15 +120,6 @@ export interface Student {
 }
 
 export type ApplicationType = Student['application_type'];
-
-export interface StudentSchool {
-  id: string;
-  student_id: string;
-  school_id: string;
-  is_pinned: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
 // 003 schema 正式招生流程新表
 export interface SchoolCycle {
@@ -177,16 +177,14 @@ export interface StudentApplicationProgress {
   updated_at: string;
 }
 
-// 前端使用的兼容类型（驼峰命名，保持向后兼容）
-export interface SchoolWithTasks extends School {
-  tasks: StudentTask[];
-}
-
 export interface DashboardSchool extends School {
   nameZh: string;
   nameEn: string | null;
   schoolNet: string | null;
-  studentSchoolId?: string;
+  studentApplicationId?: string;
+  schoolCycleId?: string;
+  applicationStatus?: ApplicationStatus;
+  priorityOrder?: number | null;
   tasks: StudentTask[];
 }
 
@@ -194,11 +192,6 @@ export interface AppStudent extends Student {
   birthDate: Date | null;
   applicationType: ApplicationType;
   addedSchools: DashboardSchool[];
-}
-
-export interface StudentSchoolWithDetails extends StudentSchool {
-  school: School;
-  tasks: StudentTask[];
 }
 
 export interface SchoolCycleWithEvents extends SchoolCycle {

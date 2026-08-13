@@ -1,19 +1,17 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, GraduationCap, Loader2, LockKeyhole, Mail } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Loader2, LockKeyhole, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useApp } from '@/context/AppContext';
 
-type AuthMode = 'sign-in' | 'sign-up';
+type AuthMode = 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password';
 
 interface AuthPageProps {
   onBack: () => void;
 }
 
 export default function AuthPage({ onBack }: AuthPageProps) {
-  const { setIsLoggedIn } = useApp();
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,9 +21,20 @@ export default function AuthPage({ onBack }: AuthPageProps) {
   const [successMessage, setSuccessMessage] = useState('');
 
   const isSignUp = mode === 'sign-up';
+  const isForgotPassword = mode === 'forgot-password';
+  const isResetPassword = mode === 'reset-password';
   const submitLabel = useMemo(
-    () => (isSubmitting ? '處理中...' : isSignUp ? '建立帳號' : '登入'),
-    [isSignUp, isSubmitting]
+    () =>
+      isSubmitting
+        ? '處理中...'
+        : isSignUp
+          ? '建立帳號'
+          : isForgotPassword
+            ? '寄送重設密碼連結'
+            : isResetPassword
+              ? '更新密碼'
+              : '登入',
+    [isForgotPassword, isResetPassword, isSignUp, isSubmitting]
   );
 
   const resetFeedback = () => {
@@ -38,16 +47,45 @@ export default function AuthPage({ onBack }: AuthPageProps) {
     resetFeedback();
   };
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const syncRecoveryMode = () => {
+      const hash = window.location.hash;
+      const isRecoveryLink = hash.includes('type=recovery');
+
+      if (isRecoveryLink) {
+        setMode('reset-password');
+        resetFeedback();
+      }
+    };
+
+    syncRecoveryMode();
+    window.addEventListener('hashchange', syncRecoveryMode);
+
+    return () => window.removeEventListener('hashchange', syncRecoveryMode);
+  }, []);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     resetFeedback();
 
-    if (!email.trim() || !password.trim()) {
+    if (isForgotPassword) {
+      if (!email.trim()) {
+        setErrorMessage('請輸入 Email。');
+        return;
+      }
+    } else if (!isResetPassword && (!email.trim() || !password.trim())) {
       setErrorMessage('請輸入 Email 和密碼。');
       return;
     }
 
-    if (isSignUp) {
+    if (isResetPassword && !password.trim()) {
+      setErrorMessage('請輸入新密碼。');
+      return;
+    }
+
+    if (isSignUp || isResetPassword) {
       if (password.length < 6) {
         setErrorMessage('密碼至少需要 6 個字元。');
         return;
@@ -62,6 +100,36 @@ export default function AuthPage({ onBack }: AuthPageProps) {
     setIsSubmitting(true);
 
     try {
+      if (isForgotPassword) {
+        const redirectTo =
+          typeof window === 'undefined' ? undefined : `${window.location.origin}`;
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo,
+        });
+
+        if (error) throw error;
+
+        setSuccessMessage('重設密碼連結已寄出，請到你的 Email 收信。');
+        return;
+      }
+
+      if (isResetPassword) {
+        const { error } = await supabase.auth.updateUser({
+          password,
+        });
+
+        if (error) throw error;
+
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        setSuccessMessage('密碼已更新，正在返回你的看板...');
+        setConfirmPassword('');
+        return;
+      }
+
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
@@ -134,7 +202,7 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                 登入後，把你的學生資料和學校清單正式接上雲端。
               </h1>
               <p className="mt-5 max-w-xl text-base leading-8 text-white/75">
-                註冊後可同步學生檔案、已添加學校與節點進度。若你現在只想先看介面，也可以先用樣品模式繼續體驗。
+                註冊後可同步學生檔案、已添加學校與節點進度，所有資料都會走同一套正式路徑。
               </p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -156,14 +224,6 @@ export default function AuthPage({ onBack }: AuthPageProps) {
               <div className="mt-8 rounded-3xl border border-amber-200/30 bg-amber-300/10 px-5 py-4 text-sm leading-7 text-white/80">
                 註冊流程目前使用 Email + 密碼。若你的 Supabase 專案已開啟 Email 驗證，註冊後需要先到信箱完成確認。
               </div>
-
-              <button
-                onClick={() => setIsLoggedIn(true)}
-                className="mt-8 inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur-md transition-all hover:bg-white/15"
-              >
-                先看樣品模式
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </motion.section>
 
             <motion.section
@@ -193,47 +253,65 @@ export default function AuthPage({ onBack }: AuthPageProps) {
 
               <div className="mt-8">
                 <h2 className="text-3xl font-black text-slate-900">
-                  {isSignUp ? '建立你的 KiDays 帳號' : '歡迎回來'}
+                  {isSignUp
+                    ? '建立你的 KiDays 帳號'
+                    : isForgotPassword
+                      ? '重設你的密碼'
+                      : isResetPassword
+                        ? '設定新密碼'
+                        : '歡迎回來'}
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-slate-500">
                   {isSignUp
                     ? '先建立帳號，之後就能把學生檔案、學校清單與申請進度保存到雲端。'
-                    : '登入後即可回到你的學校看板與學生資料。'}
+                    : isForgotPassword
+                      ? '輸入你的 Email，我們會寄送重設密碼連結給你。'
+                      : isResetPassword
+                        ? '你已經通過驗證，現在可以直接設定新密碼。'
+                        : '登入後即可回到你的學校看板與學生資料。'}
                 </p>
               </div>
 
               <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-bold text-slate-700">Email</span>
-                  <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
-                    <Mail className="h-5 w-5 text-slate-400" />
-                    <input
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="you@example.com"
-                      className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                </label>
+                {!isResetPassword && (
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-slate-700">Email</span>
+                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
+                      <Mail className="h-5 w-5 text-slate-400" />
+                      <input
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+                  </label>
+                )}
 
-                <label className="block">
-                  <span className="mb-2 block text-sm font-bold text-slate-700">密碼</span>
-                  <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
-                    <LockKeyhole className="h-5 w-5 text-slate-400" />
-                    <input
-                      type="password"
-                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder={isSignUp ? '至少 6 個字元' : '輸入你的密碼'}
-                      className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                </label>
+                {!isForgotPassword && (
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-slate-700">
+                      {isResetPassword ? '新密碼' : '密碼'}
+                    </span>
+                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
+                      <LockKeyhole className="h-5 w-5 text-slate-400" />
+                      <input
+                        type="password"
+                        autoComplete={isSignUp || isResetPassword ? 'new-password' : 'current-password'}
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        placeholder={
+                          isSignUp || isResetPassword ? '至少 6 個字元' : '輸入你的密碼'
+                        }
+                        className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+                  </label>
+                )}
 
-                {isSignUp && (
+                {(isSignUp || isResetPassword) && (
                   <label className="block">
                     <span className="mb-2 block text-sm font-bold text-slate-700">確認密碼</span>
                     <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
@@ -273,14 +351,55 @@ export default function AuthPage({ onBack }: AuthPageProps) {
               </form>
 
               <div className="mt-6 text-sm text-slate-500">
-                {isSignUp ? '已經有帳號了？' : '還沒有帳號？'}
-                <button
-                  onClick={() => handleModeChange(isSignUp ? 'sign-in' : 'sign-up')}
-                  className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
-                >
-                  {isSignUp ? '改用登入' : '立即註冊'}
-                </button>
+                {isForgotPassword ? (
+                  <>
+                    想起密碼了？
+                    <button
+                      onClick={() => handleModeChange('sign-in')}
+                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                    >
+                      返回登入
+                    </button>
+                  </>
+                ) : isResetPassword ? (
+                  <>
+                    已更新密碼後會自動套用目前登入狀態。
+                  </>
+                ) : (
+                  <>
+                    {isSignUp ? '已經有帳號了？' : '還沒有帳號？'}
+                    <button
+                      onClick={() => handleModeChange(isSignUp ? 'sign-in' : 'sign-up')}
+                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                    >
+                      {isSignUp ? '改用登入' : '立即註冊'}
+                    </button>
+                  </>
+                )}
               </div>
+
+              {mode === 'sign-in' && (
+                <div className="mt-3 text-sm text-slate-500">
+                  忘記密碼？
+                  <button
+                    onClick={() => handleModeChange('forgot-password')}
+                    className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                  >
+                    重設密碼
+                  </button>
+                </div>
+              )}
+
+              {mode !== 'reset-password' && mode !== 'sign-in' && (
+                <div className="mt-3 text-sm text-slate-500">
+                  <button
+                    onClick={() => handleModeChange('sign-in')}
+                    className="font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                  >
+                    返回登入
+                  </button>
+                </div>
+              )}
             </motion.section>
           </div>
         </div>
