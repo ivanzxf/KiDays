@@ -189,7 +189,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
       {/* 新增學生 Modal */}
       <AnimatePresence>
         {isAddStudentModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] overflow-y-auto p-4 sm:p-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -201,7 +201,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]"
+              className="relative mx-auto my-6 flex max-h-[calc(100dvh-3rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl sm:my-10"
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-50 flex-shrink-0">
                 <h3 className="text-xl font-extrabold text-gray-800">新增學生檔案</h3>

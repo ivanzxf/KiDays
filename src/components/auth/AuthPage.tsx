@@ -131,9 +131,15 @@ export default function AuthPage({ onBack }: AuthPageProps) {
       }
 
       if (isSignUp) {
+        const emailRedirectTo =
+          typeof window === 'undefined' ? undefined : `${window.location.origin}`;
+
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
+          options: {
+            emailRedirectTo,
+          },
         });
 
         if (error) throw error;
@@ -187,51 +193,13 @@ export default function AuthPage({ onBack }: AuthPageProps) {
           </div>
         </div>
 
-        <div className="flex flex-1 items-center py-10 lg:py-12">
-          <div className="grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-10">
-            <motion.section
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="rounded-[2rem] border border-white/15 bg-white/10 p-8 shadow-2xl backdrop-blur-xl lg:p-10"
-            >
-              <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-white/75">
-                Account Access
-              </div>
-              <h1 className="mt-6 text-4xl font-black leading-tight text-white">
-                登入後，把你的學生資料和學校清單正式接上雲端。
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-8 text-white/75">
-                註冊後可同步學生檔案、已添加學校與節點進度，所有資料都會走同一套正式路徑。
-              </p>
-
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                {[
-                  ['雲端同步', '學生與學校關聯'],
-                  ['進度保存', '任務勾選回寫'],
-                  ['多裝置接續', '換裝置也能接著看'],
-                ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="rounded-3xl border border-white/10 bg-white/10 px-4 py-5"
-                  >
-                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-white/55">{label}</div>
-                    <div className="mt-2 text-sm font-bold text-white">{value}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 rounded-3xl border border-amber-200/30 bg-amber-300/10 px-5 py-4 text-sm leading-7 text-white/80">
-                註冊流程目前使用 Email + 密碼。若你的 Supabase 專案已開啟 Email 驗證，註冊後需要先到信箱完成確認。
-              </div>
-            </motion.section>
-
-            <motion.section
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.05 }}
-              className="rounded-[2rem] bg-white p-8 shadow-2xl lg:p-10"
-            >
+        <div className="flex flex-1 items-center justify-center py-10 lg:py-12">
+          <motion.section
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="w-full max-w-xl rounded-[2rem] bg-white p-8 shadow-2xl lg:p-10"
+          >
               <div className="flex rounded-2xl bg-slate-100 p-1.5">
                 <button
                   onClick={() => handleModeChange('sign-in')}
@@ -400,8 +368,7 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                   </button>
                 </div>
               )}
-            </motion.section>
-          </div>
+          </motion.section>
         </div>
       </div>
     </div>
