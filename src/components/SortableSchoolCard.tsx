@@ -28,9 +28,12 @@ export default function SortableSchoolCard({
     isDragging,
   } = useSortable({ id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition:
+      !transform || (transform.x === 0 && transform.y === 0)
+        ? undefined
+        : transition ?? 'transform 150ms cubic-bezier(0.22, 0.61, 0.36, 1)',
     opacity: isDragging ? 0 : 1,
     zIndex: isDragging ? 0 : 1,
   };
@@ -42,7 +45,7 @@ export default function SortableSchoolCard({
       className="relative w-full"
       aria-label={`school-card-${id}`}
     >
-      <div className="mx-auto w-full max-w-sm">
+      <div data-school-card-inner="true" className="mx-auto w-full max-w-sm">
         <SchoolCard
           school={school}
           onTaskUpdate={updateStudentSchoolTasks}

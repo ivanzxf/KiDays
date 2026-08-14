@@ -393,7 +393,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const newStudent = formatStudentForFrontend(data as Student);
 
-    syncStudents([...students, newStudent], currentStudent?.id ?? newStudent.id);
+    syncStudents([...students, newStudent], newStudent.id);
   };
 
   const removeStudent = async (studentId: string) => {
@@ -424,6 +424,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const nextPriority = currentStudent.addedSchools.length + 1;
+    const optimisticApplicationId = `optimistic-${school.id}-${Date.now()}`;
+    const targetStudentId = currentStudent.id;
+
+    const patchTargetStudent = (updater: (student: AppStudent) => AppStudent) => {
+      setStudents((prevStudents) =>
+        prevStudents.map((student) =>
+          student.id === targetStudentId ? updater(student) : student
+        )
+      );
+    };
+
+    const optimisticSchool: DashboardSchool = {
+      ...formatSchoolForFrontend(school, []),
+      studentApplicationId: optimisticApplicationId,
+      schoolCycleId: undefined,
+      applicationStatus: 'planned',
+      priorityOrder: nextPriority,
+    };
+
+    const removeOptimisticIfExists = () => {
+      patchTargetStudent((student) => ({
+        ...student,
+        addedSchools: student.addedSchools.filter(
+          (item) => !(item.id === school.id && item.studentApplicationId === optimisticApplicationId),
+        ),
+      }));
+    };
+
+    patchTargetStudent((student) => ({
+      ...student,
+      addedSchools: [...student.addedSchools, optimisticSchool],
+    }));
+
     const { data: cycleRows, error: cycleError } = await supabase
       .from('school_cycles')
       .select('id, school_events(id, title_zh, event_type, date_status, sequence_no, start_at)')
@@ -435,12 +469,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (cycleError) {
       console.error('Error loading school cycle for application create:', cycleError);
+      removeOptimisticIfExists();
       return;
     }
 
     const latestCycle = getSingleRelation((cycleRows || []) as SchoolCycleRow[]);
     if (!latestCycle) {
       console.error('No school cycle found for school:', school.id);
+      removeOptimisticIfExists();
       return;
     }
 
@@ -452,13 +488,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         student_id: currentStudent.id,
         school_cycle_id: latestCycle.id,
         status: 'planned',
-        priority_order: currentStudent.addedSchools.length + 1,
+        priority_order: nextPriority,
       })
       .select('id, status, priority_order')
       .single();
 
     if (applicationError) {
       console.error('Error creating student application:', applicationError);
+      removeOptimisticIfExists();
       return;
     }
 
@@ -478,7 +515,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const newSchool = {
+    const newSchool: DashboardSchool = {
       ...formatSchoolForFrontend(
         school,
         buildTasksFromSchoolEvents(school.id, applicationRow.id, latestCycleEvents, new Map()),
@@ -489,9 +526,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       priorityOrder: applicationRow.priority_order,
     };
 
-    updateCurrentStudent((student) => ({
+    patchTargetStudent((student) => ({
       ...student,
-      addedSchools: [...student.addedSchools, newSchool],
+      addedSchools: student.addedSchools.map((item) =>
+        item.id === school.id && item.studentApplicationId === optimisticApplicationId
+          ? newSchool
+          : item,
+      ),
     }));
   };
 
@@ -535,13 +576,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       priorityOrder: index + 1,
     }));
 
-    const orderSaved = await persistStudentApplicationOrder(normalizedSchools);
-    if (!orderSaved) return;
-
     updateCurrentStudent((student) => ({
       ...student,
       addedSchools: normalizedSchools,
     }));
+
+    void persistStudentApplicationOrder(normalizedSchools);
   };
 
   const updateStudentSchoolTasks = async (schoolId: string, tasks: StudentTask[]) => {

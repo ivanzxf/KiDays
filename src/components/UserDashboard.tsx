@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   DndContext,
@@ -12,7 +12,6 @@ import {
   useSensors,
   CollisionDetection,
   rectIntersection,
-  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, School as SchoolIcon } from 'lucide-react';
@@ -23,18 +22,6 @@ import SchoolCard from '@/components/SchoolCard';
 import AddSchoolModal from '@/components/AddSchoolModal';
 import DeleteSchoolDialog from '@/components/DeleteSchoolDialog';
 import SortableSchoolCard from '@/components/SortableSchoolCard';
-
-const dropAnimation = {
-  duration: 160,
-  easing: 'cubic-bezier(0.18, 0.67, 0.35, 1)',
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: {
-        opacity: '0',
-      },
-    },
-  }),
-};
 
 const customCollisionDetection: CollisionDetection = (args) => {
   const { pointerCoordinates, droppableContainers } = args;
@@ -124,12 +111,32 @@ export default function UserDashboard() {
     ? currentStudentSchools.find(s => s.id === activeSchoolId) || null
     : null;
 
+  const measureInnerCardSize = useCallback(
+    (activeId: string | number): { width: number; height: number } => {
+      const fallback = { width: 320, height: 220 };
+      try {
+        if (typeof activeId !== 'string' || typeof document === 'undefined') return fallback;
+        const node = document.querySelector(
+          `[aria-label="school-card-${activeId}"] [data-school-card-inner="true"]`
+        ) as HTMLElement | null;
+        const rect = node?.getBoundingClientRect();
+        if (!rect) return fallback;
+        return { width: rect.width, height: rect.height };
+      } catch {
+        return fallback;
+      }
+    },
+    []
+  );
+
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveSchoolId(typeof event.active.id === 'string' ? event.active.id : null);
-    setActiveCardSize({
-      width: event.active.rect.current.initial?.width ?? 0,
-      height: event.active.rect.current.initial?.height ?? 0,
-    });
+    const nextActiveId = typeof event.active.id === 'string' ? event.active.id : null;
+    setActiveSchoolId(nextActiveId);
+    if (!nextActiveId) {
+      setActiveCardSize(null);
+      return;
+    }
+    setActiveCardSize(measureInnerCardSize(nextActiveId));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -236,25 +243,28 @@ export default function UserDashboard() {
                     <Plus className="w-8 h-8 theme-text" />
                   </div>
                   <span className="text-xl font-extrabold text-white/90">添加學校</span>
-                  <span className="text-white/70 text-xs font-medium mt-1">開始你的申請之旅</span>
+                  <span className="text-white/70 text-xs font-medium mt-1">加入追蹤清單</span>
                 </motion.button>
               </div>
             </motion.div>
           </div>
 
-          <DragOverlay dropAnimation={dropAnimation}>
+          <DragOverlay dropAnimation={null}>
             {activeSchool && activeCardSize ? (
-              <div
-                className="pointer-events-none opacity-70"
+              <motion.div
+                initial={{ opacity: 0.85, scale: 1 }}
+                animate={{ opacity: 0.85, scale: 1 }}
+                exit={{ opacity: 0, scale: 1 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                className="pointer-events-none"
                 style={{
                   width: activeCardSize.width,
                   height: activeCardSize.height,
+                  transformOrigin: 'center',
                 }}
               >
-                <div className="w-full max-w-sm" style={{ width: activeCardSize.width }}>
-                  <SchoolCard school={activeSchool} isOverlay={true} />
-                </div>
-              </div>
+                <SchoolCard school={activeSchool} isOverlay={true} />
+              </motion.div>
             ) : null}
           </DragOverlay>
         </DndContext>

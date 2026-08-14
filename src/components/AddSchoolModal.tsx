@@ -63,9 +63,6 @@ export default function AddSchoolModal({
             <div className="flex shrink-0 items-center justify-between border-b border-gray-50 p-6">
               <div className="flex items-center gap-3">
                 <h3 className="text-xl font-extrabold text-gray-800">添加學校</h3>
-                <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-bold text-indigo-600">
-                  即時連接 Supabase 學校主檔
-                </span>
               </div>
               <button
                 onClick={onClose}
@@ -92,7 +89,7 @@ export default function AddSchoolModal({
 
                 <div className="space-y-2">
                   <div className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    搜索結果 ({filteredSchools.length})
+                    搜尋結果 ({filteredSchools.length})
                   </div>
 
                   <div className="min-h-[100px] space-y-2">
@@ -169,7 +166,7 @@ export default function AddSchoolModal({
                       請先選擇一間學校
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
-                      這裡會顯示該學校從 Supabase 取出的招生週期與關鍵日期
+                      這裡會顯示該學校的申請時程與關鍵日期
                     </p>
                   </div>
                 ) : cyclesLoading ? (
@@ -182,7 +179,7 @@ export default function AddSchoolModal({
                       {getSchoolNameZh(selectedSchool)}
                     </div>
                     <p className="text-xs text-gray-400">
-                      學校主檔已連結成功，但目前尚未建立該校的招生週期 / 關鍵日期。
+                      目前尚未提供該校的申請時程或關鍵日期。
                     </p>
                   </div>
                 ) : (

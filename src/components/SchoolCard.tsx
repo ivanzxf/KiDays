@@ -46,12 +46,7 @@ export default function SchoolCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={!isOverlay ? { y: -8, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' } : {}}
-      className="relative h-full bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-5 border border-white/30 overflow-hidden flex flex-col"
-    >
+    <div className="relative h-full w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-5 border border-white/30 overflow-hidden flex flex-col">
       {!isOverlay && (
         <div className="absolute right-0 top-0 flex items-center gap-0">
           <div 
@@ -124,9 +119,11 @@ export default function SchoolCard({
               </label>
               <span
                 className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
-                  isDatePending(task.date_status, undefined, task.description)
-                    ? 'bg-amber-50 text-amber-600'
-                    : 'bg-gray-100 text-gray-500'
+                  task.completed
+                    ? 'bg-gray-100 text-gray-300 line-through'
+                    : isDatePending(task.date_status, undefined, task.description)
+                      ? 'bg-amber-50 text-amber-600'
+                      : 'bg-gray-100 text-gray-500'
                 }`}
               >
                 {task.description ?? TBD_LABEL}
@@ -139,6 +136,6 @@ export default function SchoolCard({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
