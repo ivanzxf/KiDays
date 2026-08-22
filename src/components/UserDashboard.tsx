@@ -222,7 +222,7 @@ export default function UserDashboard() {
             {/* 近期重點事件：固定第一個格子，在拖拽區之外，無法被移動或刪除 */}
             <div className="relative h-full w-full">
               <div className="mx-auto h-full w-full max-w-sm">
-                <UpcomingEvents gender={currentStudent?.gender ?? null} />
+                <UpcomingEvents gender={currentStudent?.gender ?? null} board />
               </div>
             </div>
 

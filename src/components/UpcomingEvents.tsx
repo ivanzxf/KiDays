@@ -90,7 +90,14 @@ function formatEventTime(iso: string, timeLabel?: string | null): string {
     : ` · ${period}${hour12}時${minute}分`;
 }
 
-export default function UpcomingEvents({ gender }: { gender?: StudentGender | null }) {
+export default function UpcomingEvents({
+  gender,
+  board = false,
+}: {
+  gender?: StudentGender | null;
+  /** 看板版：視覺上與學校單卡略作區分（微漸變底＋漸變日期框＋漸變標題）。 */
+  board?: boolean;
+}) {
   const [events, setEvents] = useState<DisplayEvent[] | null>(null);
 
   useEffect(() => {
@@ -195,14 +202,18 @@ export default function UpcomingEvents({ gender }: { gender?: StudentGender | nu
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.12 }}
-      className="flex h-full w-full flex-col rounded-[2rem] bg-white p-5 shadow-2xl lg:p-6"
+      className={`flex h-full w-full flex-col rounded-[2rem] p-5 shadow-2xl lg:p-6 ${
+        board
+          ? 'border-4 border-indigo-300 bg-gradient-to-b from-white via-white to-indigo-50/80'
+          : 'bg-white'
+      }`}
      >
        <div className="flex flex-shrink-0 items-center justify-between gap-3">
          <div className="flex items-center gap-2.5">
            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
              <CalendarClock className="h-4 w-4 text-white" />
            </div>
-           <h2 className="text-base font-black text-slate-900">近期重點事件</h2>
+           <h2 className={`text-base font-black text-slate-900 ${board ? 'theme-gradient-text' : ''}`}>近期重點事件</h2>
          </div>
        </div>
 
@@ -230,10 +241,22 @@ export default function UpcomingEvents({ gender }: { gender?: StudentGender | nu
                   : 'bg-slate-100 text-slate-500';
             return (
               <div key={`${event.schoolName}|${event.eventLabel}|${event.startAt}`} className="flex flex-1 items-center gap-4 py-1.5">
-                <div className="flex w-12 flex-shrink-0 flex-col items-center rounded-lg bg-indigo-50 py-1">
-                  <span className="text-base font-black leading-tight text-indigo-700">{date.getDate()}</span>
-                  <span className="text-[10px] font-bold text-indigo-400">{date.getMonth() + 1}月</span>
-                </div>
+                <div
+                className={`flex w-12 flex-shrink-0 flex-col items-center rounded-lg py-1 ${
+                  board ? 'theme-gradient shadow-md' : 'bg-indigo-50'
+                }`}
+              >
+                <span
+                  className={`text-base font-black leading-tight ${
+                    board ? 'text-white' : 'text-indigo-700'
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
+                <span className={`text-[10px] font-bold ${board ? 'text-white/80' : 'text-indigo-400'}`}>
+                  {date.getMonth() + 1}月
+                </span>
+              </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-slate-800">{event.schoolName}</div>
                   <div className="mt-0.5 truncate text-xs text-slate-500">
