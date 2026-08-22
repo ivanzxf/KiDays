@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { DashboardSchool, SchoolEntryPoint, StudentTask } from '@/types';
 import { School as SchoolIcon, CheckCircle2, X, Move, Pencil, Plus, Trash2 } from 'lucide-react';
 import { formatCardDateFull, getDateParts, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
+import { useApp } from '@/context/AppContext';
 
 type DragHandleListeners = Record<string, Function>;
 
@@ -98,6 +99,12 @@ export default function SchoolCard({
   isOverlay = false,
 }: SchoolCardProps) {
   const { id, nameZh } = school;
+  const { currentStudent } = useApp();
+
+  // 記憶「最後使用的入口」（Prep / Year 1）：以 學生+學校 為鍵，存於 localStorage
+  const entryPreferenceKey = currentStudent
+    ? `kidays.activeEntry.${currentStudent.id}.${school.id}`
+    : null;
 
   // 同校多入口（Prep Year / Year 1）；防呆：無 entryPoints 時退回 legacy 單一入口
   const entryPoints: SchoolEntryPoint[] =
@@ -121,6 +128,36 @@ export default function SchoolCard({
     entryPoints.find((entry) => entry.applicationLevel === 'primary') ??
     entryPoints[0] ??
     null;
+
+  // 讀回上次使用的入口（Prep / Year 1）；換學生或首次開啟時套用，無記憶時退回 Year 1
+  useEffect(() => {
+    if (!entryPreferenceKey) {
+      setActiveEntryId(null);
+      return;
+    }
+    try {
+      const saved = localStorage.getItem(entryPreferenceKey);
+      setActiveEntryId(
+        saved && entryPoints.some((entry) => entry.studentApplicationId === saved)
+          ? saved
+          : null,
+      );
+    } catch {
+      setActiveEntryId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryPreferenceKey]);
+
+  const handleSelectEntry = (applicationId: string) => {
+    setActiveEntryId(applicationId);
+    if (entryPreferenceKey) {
+      try {
+        localStorage.setItem(entryPreferenceKey, applicationId);
+      } catch {
+        /* ignore */
+      }
+    }
+  };
 
   const [localTasks, setLocalTasks] = useState<StudentTask[]>(activeEntry?.tasks ?? []);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -338,7 +375,7 @@ export default function SchoolCard({
                   <button
                     key={entry.studentApplicationId}
                     type="button"
-                    onClick={() => setActiveEntryId(entry.studentApplicationId)}
+                    onClick={() => handleSelectEntry(entry.studentApplicationId)}
                     className={`rounded-md px-2 py-0.5 text-[10px] font-bold leading-4 transition-colors ${
                       isActive ? 'theme-gradient text-white' : 'text-gray-500 hover:text-gray-700'
                     }`}
@@ -381,52 +418,16 @@ export default function SchoolCard({
             }`}
           >
             {isResultRow ? (
-              /* 結果公佈行：三態結果按鈕，不再用勾選框 */
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <div className="flex min-w-0 items-center justify-between gap-3">
-                  <label className="min-w-0 flex-1 text-[12px] font-semibold leading-5 text-gray-600 group-hover:theme-text">
-                    {task.title}
-                  </label>
-                  <div className="relative flex flex-shrink-0">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
-                        task.description === NA_LABEL || task.is_available === false
-                          ? 'bg-gray-100 text-gray-400'
-                        : isDatePending(task.date_status, undefined, task.description)
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {task.description ?? TBD_LABEL}
-                    </span>
-                    {task.is_editable_date && !isOverlay && (
-                      <button
-                        type="button"
-                        onClick={() => openEditDate(task)}
-                        className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-300 transition-colors hover:text-gray-500"
-                        title="自定義結果公佈日期"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                    )}
-                    {task.is_custom && !isOverlay && (
-                      <button
-                        type="button"
-                        onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
-                        className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-200 transition-colors hover:text-red-400"
-                        title="刪除自訂事件"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className={`flex gap-1.5 ${resultDisabled ? 'opacity-50' : ''}`}>
+              /* 結果公佈行：三態結果按鈕，與標題同一行；已選一態時其餘轉灰 */
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <label className="flex-shrink-0 text-[12px] font-semibold leading-5 text-gray-600 group-hover:theme-text">
+                  {task.title}
+                </label>
+                <div className={`flex min-w-0 items-center gap-1 ${resultDisabled ? 'opacity-50' : ''}`}>
                   {RESULT_OPTIONS.map((option) => {
                     const selected = currentResultStatus === option.value;
-                    // 已選一種時，其他兩種禁用；未選時三者都可點；TBD／N/A 時整組禁用
-                    const disabled =
-                      resultDisabled || (currentResultStatus !== null && !selected);
+                    const dimmed = currentResultStatus !== null && !selected;
+                    const disabled = resultDisabled || dimmed;
                     return (
                       <button
                         key={option.value}
@@ -434,14 +435,51 @@ export default function SchoolCard({
                         onClick={() => handleResultSelect(task, option.value)}
                         disabled={disabled}
                         aria-pressed={selected}
-                        className={`flex-1 rounded-lg border py-1 text-[10px] font-bold leading-4 transition-colors disabled:cursor-not-allowed ${
-                          selected ? option.activeClass : option.idleClass
+                        className={`flex-shrink-0 rounded-md border px-1.5 py-0.5 text-[9px] font-bold leading-4 transition-colors disabled:cursor-not-allowed ${
+                          selected
+                            ? option.activeClass
+                            : dimmed
+                              ? 'border-gray-200 bg-gray-100 text-gray-400'
+                              : option.idleClass
                         }`}
                       >
                         {option.label}
                       </button>
                     );
                   })}
+                </div>
+                <div className="relative ml-auto flex flex-shrink-0">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
+                      task.description === NA_LABEL || task.is_available === false
+                        ? 'bg-gray-100 text-gray-400'
+                      : isDatePending(task.date_status, undefined, task.description)
+                        ? 'bg-amber-50 text-amber-600'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {task.description ?? TBD_LABEL}
+                  </span>
+                  {task.is_editable_date && !isOverlay && (
+                    <button
+                      type="button"
+                      onClick={() => openEditDate(task)}
+                      className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-300 transition-colors hover:text-gray-500"
+                      title="自定義結果公佈日期"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                  )}
+                  {task.is_custom && !isOverlay && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
+                      className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-200 transition-colors hover:text-red-400"
+                      title="刪除自訂事件"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
