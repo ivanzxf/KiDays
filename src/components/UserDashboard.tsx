@@ -22,6 +22,7 @@ import SchoolCard from '@/components/SchoolCard';
 import AddSchoolModal from '@/components/AddSchoolModal';
 import DeleteSchoolDialog from '@/components/DeleteSchoolDialog';
 import SortableSchoolCard from '@/components/SortableSchoolCard';
+import UpcomingEvents from '@/components/UpcomingEvents';
 
 const customCollisionDetection: CollisionDetection = (args) => {
   const { pointerCoordinates, droppableContainers } = args;
@@ -218,6 +219,13 @@ export default function UserDashboard() {
           }}
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {/* 近期重點事件：固定第一個格子，在拖拽區之外，無法被移動或刪除 */}
+            <div className="relative h-full w-full">
+              <div className="mx-auto h-full w-full max-w-sm">
+                <UpcomingEvents gender={currentStudent?.gender ?? null} />
+              </div>
+            </div>
+
             <SortableContext items={currentStudentSchools.map(s => s.id)} strategy={rectSortingStrategy}>
               {currentStudentSchools.map(school => (
                 <SortableSchoolCard

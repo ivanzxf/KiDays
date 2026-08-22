@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarClock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { StudentGender } from '@/types';
 
-type EmbeddedSchool = { name_zh: string; school_type: string | null };
+type EmbeddedSchool = { name_zh: string; school_type: string | null; gender_policy: string | null };
 type EmbeddedCycle =
   | { school_id: string; application_level: string | null; schools: EmbeddedSchool | EmbeddedSchool[] | null }
   | { school_id: string; application_level: string | null; schools: EmbeddedSchool | EmbeddedSchool[] | null }[]
@@ -15,6 +16,8 @@ type UpcomingEventRow = {
   id: string;
   event_type: string;
   start_at: string;
+  /** 多場活動的自訂時間文字（如「上午10時/下午2時」）；無值時由 start_at 推算。 */
+  time_label?: string | null;
   school_cycles: EmbeddedCycle;
 };
 
@@ -23,12 +26,15 @@ type FeaturedEventRow = {
   school_name: string;
   title: string;
   event_date: string;
+  gender: string | null;
 };
 
 type DisplayEvent = {
   schoolName: string;
   eventLabel: string;
   startAt: string;
+  /** 多場活動的自訂時間文字。 */
+  timeLabel?: string | null;
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -51,6 +57,16 @@ const PUBLIC_EVENT_TYPES = [
 const getSingle = <T,>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? value[0] ?? null : value ?? null;
 
+/** 依學生性別過濾：男→男校/男女校，女→女校/男女校；未登入或無性別標註時不過濾。 */
+function matchesStudentGender(
+  gender: StudentGender | null | undefined,
+  policy: string | null | undefined,
+): boolean {
+  if (!gender || !policy) return true;
+  if (gender === 'boy') return policy === 'boys' || policy === 'coed';
+  return policy === 'girls' || policy === 'coed';
+}
+
 /** 距今倒數：今天 / 明天 / 還有 X 天。 */
 function countdownLabel(iso: string, now: Date): { label: string; tone: 'today' | 'soon' | 'later' } {
   const days = Math.ceil((new Date(iso).getTime() - now.getTime()) / 86400000);
@@ -60,8 +76,9 @@ function countdownLabel(iso: string, now: Date): { label: string; tone: 'today' 
   return { label: `${days} 天後`, tone: 'later' };
 }
 
-/** 事件若有明確時間（非午夜）才顯示，例如「 · 上午9時」。 */
-function formatEventTime(iso: string): string {
+/** 事件時間：有自訂時間文字（多場）時優先使用，否則由 start_at 推算（例如「 · 上午9時」）。 */
+function formatEventTime(iso: string, timeLabel?: string | null): string {
+  if (timeLabel) return ` · ${timeLabel}`;
   const date = new Date(iso);
   const hour = date.getHours();
   const minute = date.getMinutes();
@@ -73,7 +90,7 @@ function formatEventTime(iso: string): string {
     : ` · ${period}${hour12}時${minute}分`;
 }
 
-export default function UpcomingEvents() {
+export default function UpcomingEvents({ gender }: { gender?: StudentGender | null }) {
   const [events, setEvents] = useState<DisplayEvent[] | null>(null);
 
   useEffect(() => {
@@ -91,7 +108,7 @@ export default function UpcomingEvents() {
       supabase
         .from('school_events')
         .select(
-          'id, event_type, start_at, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type))',
+          'id, event_type, start_at, time_label, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type, gender_policy))',
         )
         .eq('date_status', 'confirmed')
         .in('event_type', PUBLIC_EVENT_TYPES)
@@ -105,7 +122,7 @@ export default function UpcomingEvents() {
       // 2. 營運方自訂的重點事件（與學校節點無關）
       supabase
         .from('featured_events')
-        .select('school_name, title, event_date')
+        .select('school_name, title, event_date, gender')
         .gte('event_date', rangeStart.toISOString())
         .order('event_date', { ascending: true })
         .limit(20),
@@ -125,6 +142,7 @@ export default function UpcomingEvents() {
           const cycle = getSingle(row.school_cycles);
           const school = getSingle(cycle?.schools);
           if (!cycle || !school?.name_zh) continue;
+          if (!matchesStudentGender(gender, school.gender_policy)) continue;
 
           const dateKey = new Date(row.start_at).toDateString();
           const dedupeKey = `${cycle.school_id}|${row.event_type}|${dateKey}`;
@@ -142,15 +160,18 @@ export default function UpcomingEvents() {
             schoolName: school.name_zh,
             eventLabel: EVENT_LABELS[row.event_type] ?? row.event_type,
             startAt: row.start_at,
+            timeLabel: row.time_label ?? null,
           });
         }
 
-        // 自訂重點事件直接加入（不套學校事件的多樣性限制）
-        const featuredList: DisplayEvent[] = (featuredRes.data ?? []).map((row: FeaturedEventRow) => ({
-          schoolName: row.school_name,
-          eventLabel: row.title,
-          startAt: row.event_date,
-        }));
+        // 自訂重點事件直接加入（不套學校事件的多樣性限制），並依性別過濾
+        const featuredList: DisplayEvent[] = (featuredRes.data ?? [])
+          .filter((row: FeaturedEventRow) => matchesStudentGender(gender, row.gender))
+          .map((row: FeaturedEventRow) => ({
+            schoolName: row.school_name,
+            eventLabel: row.title,
+            startAt: row.event_date,
+          }));
 
         // 合併後按時間排序，取最近 5 個
         const combined = [...schoolList, ...featuredList]
@@ -167,7 +188,7 @@ export default function UpcomingEvents() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [gender]);
 
   return (
     <motion.aside
@@ -217,7 +238,7 @@ export default function UpcomingEvents() {
                   <div className="truncate text-sm font-bold text-slate-800">{event.schoolName}</div>
                   <div className="mt-0.5 truncate text-xs text-slate-500">
                     {event.eventLabel}
-                    {formatEventTime(event.startAt)}
+                    {formatEventTime(event.startAt, event.timeLabel)}
                   </div>
                 </div>
                 <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${toneClass}`}>
