@@ -12,7 +12,8 @@ export type SchoolType =
   | 'special';
 
 export type SchoolCycleStatus = 'draft' | 'published' | 'archived';
-export type SchoolEventDateStatus = 'confirmed' | 'tbd';
+export type SchoolEventDateStatus = 'confirmed' | 'tbd' | 'na';
+export type StudentTaskCompletionSource = 'progress' | 'application';
 
 export type SchoolEventType =
   | 'open_day'
@@ -41,6 +42,12 @@ export type ApplicationStatus =
   | 'declined';
 
 export type ProgressStatus = 'pending' | 'completed' | 'skipped';
+
+/** 家長私有覆蓋資料（例如自訂的一面／二面日期），只存於學生個人資料，不改學校主資料庫。 */
+export interface StudentTaskPrivateOverride {
+  date_label?: string | null;
+  start_at?: string | null;
+}
 
 // Supabase 原生类型（下划线命名）
 export interface UserProfile {
@@ -88,6 +95,16 @@ export interface Task {
    * Legacy tasks (not derived from a school_event) may omit this field.
    */
   date_status?: SchoolEventDateStatus | null;
+  source_event_ids?: string[];
+  completion_source?: StudentTaskCompletionSource;
+  is_toggleable?: boolean;
+  is_available?: boolean;
+  /** 是否允許家長編輯此列日期（目前僅一面／二面）。 */
+  is_editable_date?: boolean;
+  /** 家長私有覆蓋資料；有值代表此列日期為家長自訂，優先於學校公開資訊。 */
+  private_override?: StudentTaskPrivateOverride | null;
+  /** 是否為家長新增的自訂事件（非學校主資料）。 */
+  is_custom?: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -177,6 +194,18 @@ export interface StudentApplicationProgress {
   updated_at: string;
 }
 
+/** 學校卡片中的一個申請入口（例如 Prep Year / Year 1）。 */
+export interface SchoolEntryPoint {
+  studentApplicationId: string;
+  schoolCycleId?: string;
+  /** kindergarten = Prep Year；primary = Year 1。 */
+  applicationLevel: 'kindergarten' | 'primary';
+  applicationStatus?: ApplicationStatus;
+  priorityOrder?: number | null;
+  isRollingAdmission?: boolean;
+  tasks: StudentTask[];
+}
+
 export interface DashboardSchool extends School {
   nameZh: string;
   nameEn: string | null;
@@ -185,6 +214,10 @@ export interface DashboardSchool extends School {
   schoolCycleId?: string;
   applicationStatus?: ApplicationStatus;
   priorityOrder?: number | null;
+  /** 該校該年度是否為 Rolling Admissions（無固定日期，日期由家長自填）。 */
+  isRollingAdmission?: boolean;
+  /** 同校所有申請入口（一般學校只有 primary 一個；國際學校可能有 Prep/Year1）。 */
+  entryPoints?: SchoolEntryPoint[];
   tasks: StudentTask[];
 }
 

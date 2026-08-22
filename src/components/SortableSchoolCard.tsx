@@ -8,7 +8,10 @@ import { DashboardSchool, StudentTask } from '@/types';
 interface SortableSchoolCardProps {
   id: string;
   school: DashboardSchool;
-  updateStudentSchoolTasks: (schoolId: string, tasks: StudentTask[]) => void;
+  updateStudentSchoolTasks: (schoolId: string, tasks: StudentTask[], applicationId?: string) => void;
+  addCustomEvent: (schoolId: string, title: string, startAt: string, applicationId?: string) => void;
+  removeCustomEvent: (schoolId: string, customEventId: string, applicationId?: string) => void;
+  restoreEventDate: (schoolId: string, taskId: string, applicationId?: string) => void;
   setSchoolToDelete: (schoolId: string) => void;
 }
 
@@ -16,6 +19,9 @@ export default function SortableSchoolCard({
   id,
   school,
   updateStudentSchoolTasks,
+  addCustomEvent,
+  removeCustomEvent,
+  restoreEventDate,
   setSchoolToDelete,
 }: SortableSchoolCardProps) {
   const {
@@ -49,6 +55,9 @@ export default function SortableSchoolCard({
         <SchoolCard
           school={school}
           onTaskUpdate={updateStudentSchoolTasks}
+          onAddCustomEvent={addCustomEvent}
+          onRemoveCustomEvent={removeCustomEvent}
+          onRestoreDate={restoreEventDate}
           onDelete={(schoolId) => setSchoolToDelete(schoolId)}
           dragHandleAttributes={attributes}
           dragHandleListeners={listeners}

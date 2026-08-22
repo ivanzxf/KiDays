@@ -49,6 +49,17 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
+/* 單卡事件區：隱藏原生滾動條（避免 macOS overlay 行為不一致），
+   改由自訂的「常駐細指示條」呈現，確保任何瀏覽器都一眼看到還有內容 */
+.card-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.card-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .theme-gradient {
   background: linear-gradient(to bottom right, var(--primary-from), var(--primary-to));
 }

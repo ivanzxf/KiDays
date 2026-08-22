@@ -51,21 +51,23 @@ Constraints:
 ---
 
 ### 02_school_cycles（招生週期）
-**預設省略**：id / created_at / updated_at / application_level / status
-- `application_level` 固定 `primary`
+**預設省略**：id / created_at / updated_at / status
+- `application_level`：**`kindergarten`（Prep Year）** 或 **`primary`（Year 1）**——同一間學校同一年度可以有兩個入口，各佔一列
 - `status` 固定 `published`
 
-| school_key | academic_year | notes |
-|---|---|---|
-| hkddsp1 | 2027-2028 |  |
-| klbaps2 | 2027-2028 |  |
+| school_key | academic_year | application_level | notes |
+|---|---|---|---|
+| hkddsp1 | 2027-2028 | primary |  |
+| klsis01 | 2027-2028 | kindergarten |  |
+| klsis01 | 2027-2028 | primary |  |
 
 ---
 
 ### 03_school_events（關鍵日期 / TBD 範例）
 **預設省略**：id / created_at / updated_at / school_cycle_id / date_status / location / source_url / notes
 - `date_status` 規則：`start_at` 有值 → 匯入程式自動寫 `confirmed`；`start_at` 留空 → 自動寫 `tbd`（日期待定）
-- `school_cycle_id` 程式自動透過 `school_key + academic_year` 對應
+- `school_cycle_id` 程式自動透過 `school_key + academic_year + application_level` 對應
+- 實際檔案用 v2 版（12 欄）：`school_key, academic_year, event_type, sequence_no, title_zh, start_at, end_at, all_day, data_status, source_url, application_level, is_rolling_admission`
 
 | school_key | academic_year | event_type | sequence_no | title_zh | start_at | end_at | all_day |
 |---|---|---|---|---|---|---|---|
@@ -74,6 +76,36 @@ Constraints:
 | klbaps2 | 2027-2028 | second_interview | 2 | 第二面 |  |  | true |
 
 > klbaps2 第二列是 TBD 範例：start_at/end_at 留空，匯入後 `date_status='tbd'`，卡片顯示「日期待定」。
+
+---
+
+## 1.1 多入口學校（Prep Year / Year 1）
+
+國際學校常同時收 **Prep Year（= K3，`application_level=kindergarten`）** 與 **Year 1（= 小一，`application_level=primary`）**，兩者時間線獨立。
+
+- 同一間學校在 `02_school_cycles` 有兩列（同上例 klsis01）
+- `03_school_events` 的每一列都要帶 `application_level`，標明屬於哪個入口（join key 是 school_key + academic_year + application_level）
+- 前端會把同校同年的多個入口合併成一張卡，卡內用頁籤切換
+
+---
+
+## 1.2 Rolling Admissions（隨到隨審）學校
+
+國際學校／私校若採取「隨到隨審、無固定日期」，在 `03_school_events` **最後一欄**加上 `is_rolling_admission`，同一間學校的所有列都填一樣的值：
+
+- 是 Rolling → 每列 `is_rolling_admission=true`
+- 不是 → 每列留空（或 `false`）
+
+| school_key | academic_year | event_type | sequence_no | title_zh | start_at | end_at | all_day | data_status | source_url | application_level | is_rolling_admission |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| klsis01 | 2027-2028 | first_interview | 5 | 第一面 |  |  | true | tbd |  | primary | true |
+| klsis01 | 2027-2028 | second_interview | 6 | 第二面 |  |  | true | tbd |  | primary | true |
+
+**重要**：
+1. Rolling 學校的單卡**不會顯示學校事件**，只顯示 5 行固定項目（學校參觀 / 學校申請 / 一面 / 二面 / 結果公佈），日期全部由家長自己填「自定義」。
+2. 因此 Rolling 學校的 `start_at` 可以一律留空（`data_status=tbd`），不必費心查日期。
+3. `is_rolling_admission` 在匯入時會同步到 `school_cycles`，同一學校＋年度的所有列值必須一致（validator 會檢查）。
+4. 若某校原本是 Rolling、之後改回有固定日期，把該校所有列改回留空（或 false），重跑匯入即可清除標記。
 
 ---
 

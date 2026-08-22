@@ -54,10 +54,16 @@ try {
 const __FILENAME__ = (typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url));
 const __DIRNAME__ = path.dirname(__FILENAME__);
 const FORMAT_DIR = path.resolve(__DIRNAME__, 'import_format');
+// 若存在「固定 7 列版」v2 events 檔則優先使用（含 data_status / source_url / NA_EVENT 三態），
+// 否則退回舊版 03_school_events.csv（僅靠 start_at 判 confirmed / tbd）。
+const V2_EVENTS_PATH = path.join(FORMAT_DIR, '03_school_events_v2.csv');
+const EVENTS_PATH = fs.existsSync(V2_EVENTS_PATH)
+  ? V2_EVENTS_PATH
+  : path.join(FORMAT_DIR, '03_school_events.csv');
 const PATHS = {
   schools: path.join(FORMAT_DIR, '01_schools.csv'),
   cycles: path.join(FORMAT_DIR, '02_school_cycles.csv'),
-  events: path.join(FORMAT_DIR, '03_school_events.csv'),
+  events: EVENTS_PATH,
 } as const;
 
 // ---------- CSV 原始列（直接從 CSV 讀出的 string 形式） ----------
@@ -78,6 +84,8 @@ interface SchoolRowRaw {
 interface CycleRowRaw {
   school_key: string;
   academic_year: string;
+  /** 入口層級：kindergarten（Prep Year）| primary（Year 1） */
+  application_level?: string;
   notes?: string;
 }
 
@@ -90,6 +98,29 @@ interface EventRowRaw {
   start_at?: string;
   end_at?: string;
   all_day?: 'true' | 'false' | '';
+  /** v2 固定 7 列版：confirmed / tbd / na */
+  data_status?: string;
+  source_url?: string;
+  /** 入口層級：kindergarten（Prep Year）| primary（Year 1） */
+  application_level?: string;
+  /** Rolling Admissions：true / false（同校同年度每列一致） */
+  is_rolling_admission?: string;
+}
+
+/** 學年度正規化：'2027/2028' -> '2027-2028'，統一以連字號為 canonical 格式。 */
+function normalizeAcademicYear(year: string): string {
+  return year.trim().replace(/\//g, '-');
+}
+
+/** 入口層級正規化：缺省視為 primary（相容舊檔）。 */
+function normalizeApplicationLevel(level: string | undefined): 'kindergarten' | 'primary' {
+  const t = (level ?? '').trim().toLowerCase();
+  return t === 'kindergarten' ? 'kindergarten' : 'primary';
+}
+
+/** join key：school_key + 年度 + 入口層級。 */
+function cycleJoinKey(schoolKey: string, year: string, level: string | undefined): string {
+  return `${schoolKey}::${normalizeAcademicYear(year)}::${normalizeApplicationLevel(level)}`;
 }
 
 // ---------- Supabase Client ----------
@@ -205,8 +236,10 @@ function cycleRowToPayload(
 ): Omit<SchoolCycle, 'id' | 'created_at' | 'updated_at'> {
   return {
     school_id: schoolId,
-    academic_year: row.academic_year.trim(),
-    application_level: 'primary' as ApplicationLevel,
+    academic_year: normalizeAcademicYear(row.academic_year),
+    application_level: normalizeApplicationLevel(
+      row.application_level,
+    ) as SchoolCycle['application_level'],
     status: 'published',
     notes: nullableString(row.notes),
   };
@@ -216,9 +249,28 @@ function eventRowToPayload(
   cycleId: string,
   row: EventRowRaw,
 ): Omit<SchoolEvent, 'id' | 'created_at' | 'updated_at'> {
-  const startAt = nullableString(row.start_at);
-  const endAt = nullableString(row.end_at);
-  const dateStatus: SchoolEventDateStatus = startAt ? 'confirmed' : 'tbd';
+  const rawStart = (row.start_at ?? '').trim();
+  const rawStatus = (row.data_status ?? '').trim().toLowerCase();
+
+  // 三態：na（明確不存在）→ tbd（存在但日期未定）→ confirmed（有實際日期）
+  let dateStatus: SchoolEventDateStatus;
+  let startAt: string | null;
+  let endAt: string | null;
+
+  if (rawStatus === 'na' || rawStart === 'NA_EVENT') {
+    dateStatus = 'na';
+    startAt = null;
+    endAt = null;
+  } else if (rawStatus === 'tbd' || rawStart === '') {
+    dateStatus = 'tbd';
+    startAt = null;
+    endAt = null;
+  } else {
+    dateStatus = 'confirmed';
+    startAt = rawStart;
+    endAt = nullableString(row.end_at);
+  }
+
   return {
     school_cycle_id: cycleId,
     event_type: row.event_type,
@@ -229,7 +281,7 @@ function eventRowToPayload(
     end_at: endAt,
     all_day: row.all_day === 'false' ? false : true,
     location: null,
-    source_url: null,
+    source_url: nullableString(row.source_url),
     notes: null,
     date_status: dateStatus,
   };
@@ -297,19 +349,23 @@ export async function importSchoolsFromCsv() {
   }
 
   // 5. 先讀現有 cycles，避免重跑匯入時重新產生新 UUID
+  //    注意：必須抓「全部」level（含 kindergarten 與歷史遺留的 NULL level），
+  //    否則快取 miss 會產生新 UUID，upsert 時把既有 id 換掉，被 school_events 的 FK 擋下。
   const currentSchoolIds = [...schoolIdByKey.values()];
   const { data: existingCycles, error: existingCyclesError } = await supabase
     .from('school_cycles')
     .select('id, school_id, academic_year, application_level')
-    .in('school_id', currentSchoolIds)
-    .eq('application_level', 'primary');
+    .in('school_id', currentSchoolIds);
   if (existingCyclesError) {
     throw new Error(`讀取現有 school_cycles 失敗: ${existingCyclesError.message}`);
   }
 
   const existingCycleIdByKeyYear = new Map<string, string>();
   for (const cycle of existingCycles ?? []) {
-    existingCycleIdByKeyYear.set(`${cycle.school_id}::${cycle.academic_year}`, cycle.id);
+    existingCycleIdByKeyYear.set(
+      `${cycle.school_id}::${normalizeAcademicYear(cycle.academic_year)}::${normalizeApplicationLevel(cycle.application_level)}`,
+      cycle.id,
+    );
   }
 
   // 6. cycles：school_key → school_id，同樣先算 cycleId 快取
@@ -320,14 +376,16 @@ export async function importSchoolsFromCsv() {
       console.warn(`[import] 跳過 cycle：school_key=${row.school_key} 找不到學校。`);
       continue;
     }
+    const joinKey = cycleJoinKey(row.school_key, row.academic_year, row.application_level);
     const cycleId =
-      existingCycleIdByKeyYear.get(`${schoolId}::${row.academic_year}`) ?? crypto.randomUUID();
-    cycleIdByKeyYear.set(`${row.school_key}::${row.academic_year}`, cycleId);
+      existingCycleIdByKeyYear.get(`${schoolId}::${normalizeAcademicYear(row.academic_year)}::${normalizeApplicationLevel(row.application_level)}`) ??
+      crypto.randomUUID();
+    cycleIdByKeyYear.set(joinKey, cycleId);
     const payload = { id: cycleId, ...cycleRowToPayload(schoolId, row) };
 
-    const { error } = await supabase
-      .from('school_cycles')
-      .upsert(payload, { onConflict: 'school_id,academic_year,application_level' });
+    // 用 id 當衝突鍵：cycleId 已由快取決定（既有 cycle 復用其 id，新 cycle 才用新 UUID），
+    // 避免 upsert 時改動既有 id 而觸發 school_events 的 FK 錯誤。
+    const { error } = await supabase.from('school_cycles').upsert(payload, { onConflict: 'id' });
     if (error) {
       throw new Error(
         `[import] 寫入 school_cycles 失敗 (key=${row.school_key} year=${row.academic_year}): ${error.message}`,
@@ -335,8 +393,13 @@ export async function importSchoolsFromCsv() {
     }
   }
 
-  // 7. events：每次重寫目標 cycle 的 event 集合，避免重跑後累積重複紀錄
-  const cycleIds = [...new Set(cycleIdByKeyYear.values())];
+  // 7. events：只重寫「本次檔案有提到」的 cycle（避免批次更新時，清掉檔案內沒有的學校）
+  const eventCycleKeys = new Set(
+    eventRows.map((row) => cycleJoinKey(row.school_key, row.academic_year, row.application_level)),
+  );
+  const cycleIds = [...eventCycleKeys]
+    .map((key) => cycleIdByKeyYear.get(key))
+    .filter((id): id is string => Boolean(id));
   if (cycleIds.length > 0) {
     const { error } = await supabase
       .from('school_events')
@@ -347,13 +410,37 @@ export async function importSchoolsFromCsv() {
     }
   }
 
-  // 8. events：school_key + academic_year → cycle_id
+  // 7.5 Rolling Admissions 標記同步（03 檔案為權威來源）：
+  //     任一 row 標 true → true；本次未標記的週期一律重設 false，避免殘留舊標記
+  const rollingByKeyYear = new Map<string, boolean>();
+  for (const row of eventRows) {
+    const key = cycleJoinKey(row.school_key, row.academic_year, row.application_level);
+    if ((row.is_rolling_admission ?? '').trim().toLowerCase() === 'true') {
+      rollingByKeyYear.set(key, true);
+    }
+  }
+  for (const key of eventCycleKeys) {
+    const cycleId = cycleIdByKeyYear.get(key);
+    if (!cycleId) continue;
+    const isRolling = rollingByKeyYear.get(key) === true;
+    const { error } = await supabase
+      .from('school_cycles')
+      .update({ is_rolling_admission: isRolling })
+      .eq('id', cycleId);
+    if (error) {
+      throw new Error(`[import] 更新 is_rolling_admission 失敗 (key=${key}): ${error.message}`);
+    }
+  }
+
+  // 8. events：school_key + academic_year + application_level → cycle_id
   const eventPayloads: Array<Omit<SchoolEvent, 'id' | 'created_at' | 'updated_at'>> = [];
   for (const row of eventRows) {
-    const cycleId = cycleIdByKeyYear.get(`${row.school_key}::${row.academic_year}`);
+    const cycleId = cycleIdByKeyYear.get(
+      cycleJoinKey(row.school_key, row.academic_year, row.application_level),
+    );
     if (!cycleId) {
       console.warn(
-        `[import] 跳過 event：school_key=${row.school_key} year=${row.academic_year} 找不到對應週期。`,
+        `[import] 跳過 event：school_key=${row.school_key} year=${row.academic_year} level=${normalizeApplicationLevel(row.application_level)} 找不到對應週期。`,
       );
       continue;
     }
@@ -368,9 +455,14 @@ export async function importSchoolsFromCsv() {
   }
 
   // 9. 基本驗證
-  const tbdCount = eventRows.filter((r) => !r.start_at?.trim()).length;
+  const naCount = eventRows.filter(
+    (r) => (r.data_status ?? '').trim().toLowerCase() === 'na' || r.start_at?.trim() === 'NA_EVENT',
+  ).length;
+  const tbdCount = eventRows.filter(
+    (r) => (r.data_status ?? '').trim().toLowerCase() === 'tbd' || (!r.start_at?.trim() && (r.data_status ?? '').trim().toLowerCase() !== 'na' && r.start_at?.trim() !== 'NA_EVENT'),
+  ).length;
   console.log(
-    `[import] 完成。共 schools=${schoolIdByKey.size} / cycles=${cycleIdByKeyYear.size} / events=${eventPayloads.length} / deactivated=${staleSchoolIds.length} (其中 TBD >= ${tbdCount})`,
+    `[import] 完成。共 schools=${schoolIdByKey.size} / cycles=${cycleIdByKeyYear.size} / events=${eventPayloads.length} / deactivated=${staleSchoolIds.length} (其中 TBD=${tbdCount} / N/A=${naCount})`,
   );
 }
 

@@ -2,16 +2,13 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, GraduationCap, Loader2, LockKeyhole, Mail } from 'lucide-react';
+import { GraduationCap, Loader2, LockKeyhole, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import UpcomingEvents from '@/components/UpcomingEvents';
 
 type AuthMode = 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password';
 
-interface AuthPageProps {
-  onBack: () => void;
-}
-
-export default function AuthPage({ onBack }: AuthPageProps) {
+export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -177,33 +174,36 @@ export default function AuthPage({ onBack }: AuthPageProps) {
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_28%,transparent_72%,rgba(255,255,255,0.08))]" />
       <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-white/15 blur-3xl" />
 
-      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 pb-10 pt-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/90 backdrop-blur-md transition-all hover:bg-white/15"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            返回首頁
-          </button>
-
-          <div className="inline-flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/90 backdrop-blur-md">
-            <GraduationCap className="h-5 w-5" />
+      <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-10 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="mb-10 text-center"
+        >
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur-md">
+            <GraduationCap className="h-4 w-4" />
             KiDays 童步
           </div>
-        </div>
+          <h1 className="mt-5 text-3xl font-black leading-tight text-white sm:text-4xl">
+            開始您的申請之旅
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-white/70 sm:text-base">
+            把每間學校的申請進度、重要日期與面試安排收進同一個看板，一步步從容準備。
+          </p>
+        </motion.div>
 
-        <div className="flex flex-1 items-center justify-center py-10 lg:py-12">
+        <div className="grid items-stretch gap-10 lg:grid-cols-2 lg:gap-14">
           <motion.section
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="w-full max-w-xl rounded-[2rem] bg-white p-8 shadow-2xl lg:p-10"
+            transition={{ duration: 0.45, delay: 0.08 }}
+            className="flex w-full flex-col rounded-[2rem] bg-white p-5 shadow-2xl lg:p-6"
           >
-              <div className="flex rounded-2xl bg-slate-100 p-1.5">
+              <div className="flex rounded-2xl bg-slate-100 p-1">
                 <button
                   onClick={() => handleModeChange('sign-in')}
-                  className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  className={`flex-1 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
                     !isSignUp ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
                   }`}
                 >
@@ -211,7 +211,7 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                 </button>
                 <button
                   onClick={() => handleModeChange('sign-up')}
-                  className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  className={`flex-1 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
                     isSignUp ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
                   }`}
                 >
@@ -219,8 +219,8 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                 </button>
               </div>
 
-              <div className="mt-8">
-                <h2 className="text-3xl font-black text-slate-900">
+              <div className="mt-3">
+                <h2 className="text-2xl font-black text-slate-900">
                   {isSignUp
                     ? '建立你的 KiDays 帳號'
                     : isForgotPassword
@@ -229,46 +229,38 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                         ? '設定新密碼'
                         : '歡迎回來'}
                 </h2>
-                <p className="mt-3 text-sm leading-7 text-slate-500">
-                  {isSignUp
-                    ? '先建立帳號，之後就能把學生檔案、學校清單與申請進度保存到雲端。'
-                    : isForgotPassword
-                      ? '輸入你的 Email，我們會寄送重設密碼連結給你。'
-                      : isResetPassword
-                        ? '你已經通過驗證，現在可以直接設定新密碼。'
-                        : '登入後即可回到你的學校看板與學生資料。'}
-                </p>
               </div>
 
-              <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-                {!isResetPassword && (
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-slate-700">Email</span>
-                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
-                      <Mail className="h-5 w-5 text-slate-400" />
-                      <input
-                        type="email"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="you@example.com"
-                        className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
-                      />
-                    </div>
-                  </label>
-                )}
+              <form className="mt-3 flex flex-1 flex-col justify-evenly gap-3" onSubmit={handleSubmit}>
+                <label className={`block ${isResetPassword ? 'hidden' : ''}`}>
+                  <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
+                    <Mail className="h-5 w-5 text-slate-400" />
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      disabled={isResetPassword}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                    />
+                  </div>
+                </label>
 
-                {!isForgotPassword && (
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-slate-700">
-                      {isResetPassword ? '新密碼' : '密碼'}
-                    </span>
-                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
+                {/* 密碼列：登入時單欄全寬；註冊/重設時與「再輸入一次」並排各半寬，高度保持不變 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`block ${isForgotPassword ? 'hidden' : ''} ${
+                      isSignUp || isResetPassword ? '' : 'col-span-2'
+                    }`}
+                  >
+                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
                       <LockKeyhole className="h-5 w-5 text-slate-400" />
                       <input
                         type="password"
                         autoComplete={isSignUp || isResetPassword ? 'new-password' : 'current-password'}
                         value={password}
+                        disabled={isForgotPassword}
                         onChange={(event) => setPassword(event.target.value)}
                         placeholder={
                           isSignUp || isResetPassword ? '至少 6 個字元' : '輸入你的密碼'
@@ -277,24 +269,22 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                       />
                     </div>
                   </label>
-                )}
 
-                {(isSignUp || isResetPassword) && (
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-slate-700">確認密碼</span>
-                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus-within:border-indigo-500 focus-within:bg-white">
+                  <label className={`block ${isSignUp || isResetPassword ? '' : 'hidden'}`}>
+                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
                       <LockKeyhole className="h-5 w-5 text-slate-400" />
                       <input
                         type="password"
                         autoComplete="new-password"
                         value={confirmPassword}
+                        disabled={!(isSignUp || isResetPassword)}
                         onChange={(event) => setConfirmPassword(event.target.value)}
                         placeholder="再輸入一次密碼"
                         className="ml-3 w-full bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
                       />
                     </div>
                   </label>
-                )}
+                </div>
 
                 {errorMessage && (
                   <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
@@ -311,14 +301,14 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 text-sm font-bold text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   {submitLabel}
                 </button>
               </form>
 
-              <div className="mt-6 text-sm text-slate-500">
+              <div className="mt-3 flex items-center justify-between gap-4 text-sm text-slate-500">
                 {isForgotPassword ? (
                   <>
                     想起密碼了？
@@ -330,11 +320,9 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                     </button>
                   </>
                 ) : isResetPassword ? (
-                  <>
-                    已更新密碼後會自動套用目前登入狀態。
-                  </>
+                  <span>已更新密碼後會自動套用目前登入狀態。</span>
                 ) : (
-                  <>
+                  <span>
                     {isSignUp ? '已經有帳號了？' : '還沒有帳號？'}
                     <button
                       onClick={() => handleModeChange(isSignUp ? 'sign-in' : 'sign-up')}
@@ -342,33 +330,24 @@ export default function AuthPage({ onBack }: AuthPageProps) {
                     >
                       {isSignUp ? '改用登入' : '立即註冊'}
                     </button>
-                  </>
+                  </span>
+                )}
+
+                {mode === 'sign-in' && (
+                  <span>
+                    忘記密碼？
+                    <button
+                      onClick={() => handleModeChange('forgot-password')}
+                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                    >
+                      重設密碼
+                    </button>
+                  </span>
                 )}
               </div>
-
-              {mode === 'sign-in' && (
-                <div className="mt-3 text-sm text-slate-500">
-                  忘記密碼？
-                  <button
-                    onClick={() => handleModeChange('forgot-password')}
-                    className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
-                  >
-                    重設密碼
-                  </button>
-                </div>
-              )}
-
-              {mode !== 'reset-password' && mode !== 'sign-in' && (
-                <div className="mt-3 text-sm text-slate-500">
-                  <button
-                    onClick={() => handleModeChange('sign-in')}
-                    className="font-bold text-indigo-600 transition-colors hover:text-indigo-500"
-                  >
-                    返回登入
-                  </button>
-                </div>
-              )}
           </motion.section>
+
+          <UpcomingEvents />
         </div>
       </div>
     </div>
