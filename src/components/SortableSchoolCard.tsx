@@ -12,6 +12,11 @@ interface SortableSchoolCardProps {
   addCustomEvent: (schoolId: string, title: string, startAt: string, applicationId?: string) => void;
   removeCustomEvent: (schoolId: string, customEventId: string, applicationId?: string) => void;
   restoreEventDate: (schoolId: string, taskId: string, applicationId?: string) => void;
+  updateSchoolResult: (
+    schoolId: string,
+    resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
+    applicationId?: string,
+  ) => void;
   setSchoolToDelete: (schoolId: string) => void;
 }
 
@@ -22,6 +27,7 @@ export default function SortableSchoolCard({
   addCustomEvent,
   removeCustomEvent,
   restoreEventDate,
+  updateSchoolResult,
   setSchoolToDelete,
 }: SortableSchoolCardProps) {
   const {
@@ -58,6 +64,7 @@ export default function SortableSchoolCard({
           onAddCustomEvent={addCustomEvent}
           onRemoveCustomEvent={removeCustomEvent}
           onRestoreDate={restoreEventDate}
+          onUpdateResult={updateSchoolResult}
           onDelete={(schoolId) => setSchoolToDelete(schoolId)}
           dragHandleAttributes={attributes}
           dragHandleListeners={listeners}

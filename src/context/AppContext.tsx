@@ -53,6 +53,12 @@ interface AppContextType {
   addCustomEvent: (schoolId: string, title: string, startAt: string, applicationId?: string) => Promise<void>;
   removeCustomEvent: (schoolId: string, customEventId: string, applicationId?: string) => Promise<void>;
   restoreEventDate: (schoolId: string, taskId: string, applicationId?: string) => Promise<void>;
+  /** 標註／清除某校的申請結果（取錄／候補／落選）；null 代表清除。 */
+  updateSchoolResult: (
+    schoolId: string,
+    resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
+    applicationId?: string,
+  ) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1213,6 +1219,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refreshSchoolTasks(targetSchool, appId);
   };
 
+  const updateSchoolResult = async (
+    schoolId: string,
+    resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
+    applicationId?: string,
+  ) => {
+    if (!currentStudent || !authUserId) return;
+
+    const targetSchool = currentStudent.addedSchools.find((school) => school.id === schoolId);
+    if (!targetSchool) return;
+    const appId = applicationId ?? targetSchool.studentApplicationId ?? '';
+    if (!appId) return;
+    const entry = findEntryPoint(targetSchool, appId);
+    if (!entry) return;
+
+    // 清除結果 → 回到「已申請」；標註 → 寫入對應結果狀態（樂觀 UI，先更新本地）
+    const nextStatus: ApplicationStatus = resultStatus ?? 'applied';
+
+    updateCurrentStudent((student) => ({
+      ...student,
+      addedSchools: student.addedSchools.map((school) =>
+        school.id === schoolId
+          ? patchEntryPoints(school, appId, (current) => ({
+              ...current,
+              applicationStatus: nextStatus,
+            }))
+          : school
+      ),
+    }));
+
+    const { error } = await supabase
+      .from('student_applications')
+      .update({
+        status: nextStatus,
+        result_at: resultStatus ? new Date().toISOString() : null,
+      })
+      .eq('id', appId);
+
+    if (error) {
+      console.error('Error updating school result:', error);
+      // 寫入失敗時回滾，重新載入遠端資料
+      await refreshSchoolTasks(targetSchool, appId);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1232,6 +1282,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addCustomEvent,
         removeCustomEvent,
         restoreEventDate,
+        updateSchoolResult,
       }}
     >
       {children}

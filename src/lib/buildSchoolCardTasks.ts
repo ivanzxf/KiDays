@@ -141,6 +141,8 @@ function createBaseTask(params: {
   isEditableDate?: boolean;
   privateOverride?: StudentTaskPrivateOverride | null;
   isCustom?: boolean;
+  isResult?: boolean;
+  startAt?: string | null;
   completed: boolean;
   completedAt?: string | null;
 }): StudentTask {
@@ -159,6 +161,8 @@ function createBaseTask(params: {
     is_editable_date: params.isEditableDate ?? false,
     private_override: params.privateOverride ?? null,
     is_custom: params.isCustom ?? false,
+    is_result: params.isResult ?? false,
+    start_at: params.startAt ?? null,
     completed: params.completed,
     completed_at: params.completed ? params.completedAt ?? now : null,
     sort_order: params.sortOrder,
@@ -202,6 +206,8 @@ function buildSingleEventTask(params: {
       completionSource: 'progress',
       isToggleable: false,
       isAvailable: false,
+      isResult: params.eventType === 'result_release',
+      startAt: null,
       completed: false,
     });
   }
@@ -229,6 +235,8 @@ function buildSingleEventTask(params: {
     isToggleable: params.isToggleable && effectiveState === 'confirmed',
     isAvailable: true,
     isEditableDate: isInterviewEvent,
+    isResult: params.eventType === 'result_release',
+    startAt: event?.start_at ?? null,
     privateOverride:
       params.overrideDate && isInterviewEvent
         ? {
@@ -422,6 +430,8 @@ function buildRollingTask(params: {
       isToggleable: Boolean(overrideDate),
       isAvailable: true,
       isEditableDate: true,
+      isResult: params.key === 'result_release',
+      startAt: params.overrideRow?.start_at ?? null,
       privateOverride: overrideDate
         ? {
             date_label: formatCardDateFull(overrideDate),

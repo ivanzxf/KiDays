@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { DashboardSchool, SchoolEntryPoint, StudentTask } from '@/types';
 import { School as SchoolIcon, CheckCircle2, X, Move, Pencil, Plus, Trash2 } from 'lucide-react';
-import { formatCardDateFull, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
+import { formatCardDateFull, getDateParts, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
 
 type DragHandleListeners = Record<string, Function>;
 
@@ -17,6 +17,22 @@ function parseDateInput(value: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/** 以「香港時區」取得日期的 YYYY-MM-DD 鍵，供跨時區比較。 */
+function getHkDateKey(value: string | Date): string {
+  const p = getDateParts(value instanceof Date ? value : new Date(value));
+  const monthIndex =
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(p.month) + 1;
+  return `${p.year}-${String(monthIndex).padStart(2, '0')}-${String(Number(p.day)).padStart(2, '0')}`;
+}
+
+/** 放榜日是否已到（今天 >= 放榜日）；無日期視為未到。 */
+function isResultReleased(startAt?: string | null): boolean {
+  if (!startAt) return false;
+  const start = new Date(startAt);
+  if (Number.isNaN(start.getTime())) return false;
+  return getHkDateKey(new Date()) >= getHkDateKey(start);
+}
+
 interface SchoolCardProps {
   school: DashboardSchool;
   onTaskUpdate?: (schoolId: string, tasks: StudentTask[], applicationId?: string) => void;
@@ -24,11 +40,49 @@ interface SchoolCardProps {
   onAddCustomEvent?: (schoolId: string, title: string, startAt: string, applicationId?: string) => void;
   onRemoveCustomEvent?: (schoolId: string, customEventId: string, applicationId?: string) => void;
   onRestoreDate?: (schoolId: string, taskId: string, applicationId?: string) => void;
+  onUpdateResult?: (
+    schoolId: string,
+    resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
+    applicationId?: string,
+  ) => void;
   dragHandleAttributes?: React.HTMLAttributes<HTMLDivElement>;
   dragHandleListeners?: DragHandleListeners;
   dragHandleRef?: (element: HTMLElement | null) => void;
   isOverlay?: boolean;
 }
+
+/** 結果三態配置：選中深色高亮，未選淡色。 */
+const RESULT_OPTIONS: {
+  value: 'offered' | 'waitlisted' | 'rejected';
+  label: string;
+  activeClass: string;
+  idleClass: string;
+}[] = [
+  {
+    value: 'offered',
+    label: '取錄',
+    activeClass: 'bg-emerald-500 border-emerald-500 text-white',
+    idleClass: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+  },
+  {
+    value: 'waitlisted',
+    label: '候補',
+    activeClass: 'bg-amber-400 border-amber-400 text-white',
+    idleClass: 'border-amber-200 bg-amber-50 text-amber-600',
+  },
+  {
+    value: 'rejected',
+    label: '落選',
+    activeClass: 'bg-rose-400 border-rose-400 text-white',
+    idleClass: 'border-rose-200 bg-rose-50 text-rose-500',
+  },
+];
+
+const RESULT_BADGE: Record<'offered' | 'waitlisted' | 'rejected', { label: string; className: string }> = {
+  offered: { label: '已取錄', className: 'bg-emerald-50 text-emerald-600' },
+  waitlisted: { label: '候補中', className: 'bg-amber-50 text-amber-600' },
+  rejected: { label: '落選', className: 'bg-rose-50 text-rose-500' },
+};
 
 export default function SchoolCard({
   school,
@@ -37,6 +91,7 @@ export default function SchoolCard({
   onAddCustomEvent,
   onRemoveCustomEvent,
   onRestoreDate,
+  onUpdateResult,
   dragHandleAttributes,
   dragHandleListeners,
   dragHandleRef,
@@ -126,7 +181,7 @@ export default function SchoolCard({
 
   const handleTaskToggle = (taskId: string) => {
     const targetTask = localTasks.find((task) => task.id === taskId);
-    if (!targetTask || targetTask.is_toggleable === false || targetTask.is_available === false) {
+    if (!targetTask || targetTask.is_toggleable === false || targetTask.is_available === false || targetTask.is_result === true) {
       return;
     }
 
@@ -141,6 +196,27 @@ export default function SchoolCard({
     if (onTaskUpdate) {
       onTaskUpdate(id, newTasks, activeEntry?.studentApplicationId);
     }
+  };
+
+  /** 目前該申請的結果狀態（offered / waitlisted / rejected），未標註為 null。 */
+  const currentResultStatus: 'offered' | 'waitlisted' | 'rejected' | null = (() => {
+    const status = activeEntry?.applicationStatus;
+    return status === 'offered' || status === 'waitlisted' || status === 'rejected' ? status : null;
+  })();
+
+  /** 結果行三態選擇：再點一次已選狀態＝清除。 */
+  const handleResultSelect = (task: StudentTask, status: 'offered' | 'waitlisted' | 'rejected') => {
+    if (
+      task.is_result !== true ||
+      task.is_available === false ||
+      task.date_status !== 'confirmed' ||
+      !isResultReleased(task.start_at)
+    ) {
+      return;
+    }
+    if (!onUpdateResult) return;
+    const next = currentResultStatus === status ? null : status;
+    onUpdateResult(id, next, activeEntry?.studentApplicationId);
   };
 
   const openEditDate = (task: StudentTask) => {
@@ -166,6 +242,7 @@ export default function SchoolCard({
             ...task,
             description: formatCardDateFull(date),
             date_status: 'confirmed' as const,
+            start_at: startAt,
             is_toggleable: true,
             is_available: true,
             private_override: {
@@ -237,11 +314,20 @@ export default function SchoolCard({
             <h3 className="break-words whitespace-normal text-[15px] font-extrabold leading-5 text-gray-800">
               {nameZh}
             </h3>
-            {activeEntry?.isRollingAdmission && (
-              <span className="mt-0.5 inline-flex w-fit items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold leading-4 text-indigo-600">
-                Rolling Admissions
-              </span>
-            )}
+            <div className="mt-0.5 flex flex-wrap items-center gap-1">
+              {activeEntry?.isRollingAdmission && (
+                <span className="inline-flex w-fit items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold leading-4 text-indigo-600">
+                  Rolling Admissions
+                </span>
+              )}
+              {currentResultStatus && (
+                <span
+                  className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[9px] font-bold leading-4 ${RESULT_BADGE[currentResultStatus].className}`}
+                >
+                  {RESULT_BADGE[currentResultStatus].label}
+                </span>
+              )}
+            </div>
           </div>
           {entryPoints.length > 1 && (
             <div className="flex flex-shrink-0 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
@@ -275,7 +361,16 @@ export default function SchoolCard({
             hasOverflow ? 'card-scrollbar' : 'overflow-y-hidden'
           }`}
         >
-        {localTasks.length > 0 ? localTasks.map((task, index) => (
+        {localTasks.length > 0 ? localTasks.map((task, index) => {
+          const isResultRow = task.is_result === true;
+          // 結果行可操作條件：事件存在、日期已確認、且今天已到放榜日；
+          // TBD／N/A／放榜日未到 時整組禁用
+          const resultDisabled =
+            isResultRow &&
+            (task.is_available === false ||
+              task.date_status !== 'confirmed' ||
+              !isResultReleased(task.start_at));
+          return (
           <motion.div
             key={task.id}
             initial={{ opacity: 0, x: -10 }}
@@ -285,6 +380,72 @@ export default function SchoolCard({
               task.is_available === false ? 'opacity-60' : 'hover:bg-gray-50'
             }`}
           >
+            {isResultRow ? (
+              /* 結果公佈行：三態結果按鈕，不再用勾選框 */
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                  <label className="min-w-0 flex-1 text-[12px] font-semibold leading-5 text-gray-600 group-hover:theme-text">
+                    {task.title}
+                  </label>
+                  <div className="relative flex flex-shrink-0">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
+                        task.description === NA_LABEL || task.is_available === false
+                          ? 'bg-gray-100 text-gray-400'
+                        : isDatePending(task.date_status, undefined, task.description)
+                          ? 'bg-amber-50 text-amber-600'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {task.description ?? TBD_LABEL}
+                    </span>
+                    {task.is_editable_date && !isOverlay && (
+                      <button
+                        type="button"
+                        onClick={() => openEditDate(task)}
+                        className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-300 transition-colors hover:text-gray-500"
+                        title="自定義結果公佈日期"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    )}
+                    {task.is_custom && !isOverlay && (
+                      <button
+                        type="button"
+                        onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
+                        className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-200 transition-colors hover:text-red-400"
+                        title="刪除自訂事件"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className={`flex gap-1.5 ${resultDisabled ? 'opacity-50' : ''}`}>
+                  {RESULT_OPTIONS.map((option) => {
+                    const selected = currentResultStatus === option.value;
+                    // 已選一種時，其他兩種禁用；未選時三者都可點；TBD／N/A 時整組禁用
+                    const disabled =
+                      resultDisabled || (currentResultStatus !== null && !selected);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleResultSelect(task, option.value)}
+                        disabled={disabled}
+                        aria-pressed={selected}
+                        className={`flex-1 rounded-lg border py-1 text-[10px] font-bold leading-4 transition-colors disabled:cursor-not-allowed ${
+                          selected ? option.activeClass : option.idleClass
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -350,8 +511,11 @@ export default function SchoolCard({
                 )}
               </div>
             </div>
+              </>
+            )}
           </motion.div>
-        )) : (
+          );
+        }) : (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-4 text-xs font-semibold text-gray-400">
             這間學校暫時還沒有可勾選的申請項目
           </div>

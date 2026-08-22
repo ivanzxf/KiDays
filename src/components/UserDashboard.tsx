@@ -55,6 +55,7 @@ export default function UserDashboard() {
     addCustomEvent,
     removeCustomEvent,
     restoreEventDate,
+    updateSchoolResult,
   } = useApp();
   const [isAddSchoolModalOpen, setIsAddSchoolModalOpen] = useState(false);
   const [schoolToDelete, setSchoolToDelete] = useState<string | null>(null);
@@ -227,6 +228,7 @@ export default function UserDashboard() {
                   addCustomEvent={addCustomEvent}
                   removeCustomEvent={removeCustomEvent}
                   restoreEventDate={restoreEventDate}
+                  updateSchoolResult={updateSchoolResult}
                   setSchoolToDelete={setSchoolToDelete}
                 />
               ))}

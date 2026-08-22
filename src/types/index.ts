@@ -105,6 +105,10 @@ export interface Task {
   private_override?: StudentTaskPrivateOverride | null;
   /** 是否為家長新增的自訂事件（非學校主資料）。 */
   is_custom?: boolean;
+  /** 是否為「結果公佈」行：以三態（取錄／候補／落選）標註結果，而非勾選。 */
+  is_result?: boolean;
+  /** 事件開始時間（ISO），供「放榜日是否已到」等日期比較用。 */
+  start_at?: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
