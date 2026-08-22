@@ -18,6 +18,13 @@ type UpcomingEventRow = {
   school_cycles: EmbeddedCycle;
 };
 
+/** featured_events 表的自訂重點事件。 */
+type FeaturedEventRow = {
+  school_name: string;
+  title: string;
+  event_date: string;
+};
+
 type DisplayEvent = {
   schoolName: string;
   eventLabel: string;
@@ -44,15 +51,6 @@ const PUBLIC_EVENT_TYPES = [
 const getSingle = <T,>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? value[0] ?? null : value ?? null;
 
-/** 事件日期（當地時間）→ 顯示文字：同月「8月21日」，跨月/跨年自動補年份。 */
-function formatEventDate(iso: string, now: Date): string {
-  const date = new Date(iso);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const base = `${month}月${day}日`;
-  return date.getFullYear() === now.getFullYear() ? base : `${date.getFullYear()}年${base}`;
-}
-
 /** 距今倒數：今天 / 明天 / 還有 X 天。 */
 function countdownLabel(iso: string, now: Date): { label: string; tone: 'today' | 'soon' | 'later' } {
   const days = Math.ceil((new Date(iso).getTime() - now.getTime()) / 86400000);
@@ -62,42 +60,68 @@ function countdownLabel(iso: string, now: Date): { label: string; tone: 'today' 
   return { label: `${days} 天後`, tone: 'later' };
 }
 
+/** 事件若有明確時間（非午夜）才顯示，例如「 · 上午9時」。 */
+function formatEventTime(iso: string): string {
+  const date = new Date(iso);
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  if (hour === 0 && minute === 0) return '';
+  const period = hour < 12 ? '上午' : '下午';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return minute === 0
+    ? ` · ${period}${hour12}時`
+    : ` · ${period}${hour12}時${minute}分`;
+}
+
 export default function UpcomingEvents() {
   const [events, setEvents] = useState<DisplayEvent[] | null>(null);
-  const [level, setLevel] = useState<'primary' | 'kindergarten'>('primary');
 
   useEffect(() => {
     let active = true;
 
     const now = new Date();
+    // 範圍起點：今天 0 點（今天的事件即使已過時間也顯示，昨天及之前的不顯示）
+    const rangeStart = new Date(now);
+    rangeStart.setHours(0, 0, 0, 0);
     const windowEnd = new Date(now);
     windowEnd.setDate(windowEnd.getDate() + 14);
 
-    supabase
-      .from('school_events')
-      .select(
-        'id, event_type, start_at, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type))',
-      )
-      .eq('date_status', 'confirmed')
-      .in('event_type', PUBLIC_EVENT_TYPES)
-      .not('start_at', 'is', null)
-      .gte('start_at', now.toISOString())
-      .lte('start_at', windowEnd.toISOString())
-      .eq('school_cycles.status', 'published')
-      .order('start_at', { ascending: true })
-      .limit(20)
-      .then(({ data, error }) => {
+    Promise.all([
+      // 1. 學校官方事件（僅小學入口）
+      supabase
+        .from('school_events')
+        .select(
+          'id, event_type, start_at, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type))',
+        )
+        .eq('date_status', 'confirmed')
+        .in('event_type', PUBLIC_EVENT_TYPES)
+        .not('start_at', 'is', null)
+        .gte('start_at', rangeStart.toISOString())
+        .lte('start_at', windowEnd.toISOString())
+        .eq('school_cycles.status', 'published')
+        .eq('school_cycles.application_level', 'primary')
+        .order('start_at', { ascending: true })
+        .limit(20),
+      // 2. 營運方自訂的重點事件（與學校節點無關）
+      supabase
+        .from('featured_events')
+        .select('school_name, title, event_date')
+        .gte('event_date', rangeStart.toISOString())
+        .order('event_date', { ascending: true })
+        .limit(20),
+    ])
+      .then(([schoolRes, featuredRes]) => {
         if (!active) return;
-        if (error) {
-          console.error('Error loading upcoming events:', error);
+        if (schoolRes.error) {
+          console.error('Error loading upcoming events:', schoolRes.error);
           setEvents([]);
           return;
         }
 
         const seen = new Set<string>();
         const sameDayEventCount = new Map<string, number>();
-        const list: DisplayEvent[] = [];
-        for (const row of (data ?? []) as UpcomingEventRow[]) {
+        const schoolList: DisplayEvent[] = [];
+        for (const row of (schoolRes.data ?? []) as UpcomingEventRow[]) {
           const cycle = getSingle(row.school_cycles);
           const school = getSingle(cycle?.schools);
           if (!cycle || !school?.name_zh) continue;
@@ -114,15 +138,30 @@ export default function UpcomingEvents() {
           if (groupCount >= 3) continue;
           sameDayEventCount.set(groupKey, groupCount + 1);
 
-          list.push({
+          schoolList.push({
             schoolName: school.name_zh,
             eventLabel: EVENT_LABELS[row.event_type] ?? row.event_type,
             startAt: row.start_at,
           });
-          if (list.length >= 5) break;
         }
 
-        setEvents(list);
+        // 自訂重點事件直接加入（不套學校事件的多樣性限制）
+        const featuredList: DisplayEvent[] = (featuredRes.data ?? []).map((row: FeaturedEventRow) => ({
+          schoolName: row.school_name,
+          eventLabel: row.title,
+          startAt: row.event_date,
+        }));
+
+        // 合併後按時間排序，取最近 5 個
+        const combined = [...schoolList, ...featuredList]
+          .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+          .slice(0, 5);
+
+        setEvents(combined);
+      })
+      .catch((error) => {
+        console.error('Error loading upcoming events:', error);
+        if (active) setEvents([]);
       });
 
     return () => {
@@ -143,24 +182,6 @@ export default function UpcomingEvents() {
              <CalendarClock className="h-4 w-4 text-white" />
            </div>
            <h2 className="text-base font-black text-slate-900">近期重點事件</h2>
-         </div>
-         <div className="flex rounded-xl bg-slate-100 p-1">
-           <button
-             onClick={() => setLevel('primary')}
-             className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-               level === 'primary' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-             }`}
-           >
-             小學
-           </button>
-           <button
-             onClick={() => setLevel('kindergarten')}
-             className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-               level === 'kindergarten' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-             }`}
-           >
-             幼稚園
-           </button>
          </div>
        </div>
 
@@ -195,7 +216,8 @@ export default function UpcomingEvents() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold text-slate-800">{event.schoolName}</div>
                   <div className="mt-0.5 truncate text-xs text-slate-500">
-                    {event.eventLabel} · {formatEventDate(event.startAt, now)}
+                    {event.eventLabel}
+                    {formatEventTime(event.startAt)}
                   </div>
                 </div>
                 <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${toneClass}`}>

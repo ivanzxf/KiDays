@@ -150,13 +150,6 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
               </button>
             </div>
           </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-bold text-gray-700">申請類型</label>
-            <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700">
-              目前僅支援小學申請
-            </div>
-          </div>
         </div>
 
         <div className="flex-shrink-0 border-t border-gray-50 p-6">
