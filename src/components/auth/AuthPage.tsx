@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { GraduationCap, Loader2, LockKeyhole, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import UpcomingEvents from '@/components/UpcomingEvents';
+import UserManualModal from '@/components/auth/UserManualModal';
 
 type AuthMode = 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password';
 
@@ -16,6 +17,8 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showManual, setShowManual] = useState(false);
 
   const isSignUp = mode === 'sign-up';
   const isForgotPassword = mode === 'forgot-password';
@@ -92,6 +95,11 @@ export default function AuthPage() {
         setErrorMessage('兩次輸入的密碼不一致。');
         return;
       }
+    }
+
+    if (isSignUp && !agreedToTerms) {
+      setErrorMessage('請先閱讀並勾選同意《用戶手冊及使用條款》。');
+      return;
     }
 
     setIsSubmitting(true);
@@ -298,6 +306,27 @@ export default function AuthPage() {
                   </div>
                 )}
 
+                {isSignUp && (
+                  <label className="flex items-start gap-2.5 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(event) => setAgreedToTerms(event.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-indigo-600"
+                    />
+                    <span>
+                      我已閱讀並同意
+                      <button
+                        type="button"
+                        onClick={() => setShowManual(true)}
+                        className="mx-1 font-bold text-indigo-600 underline underline-offset-2 transition-colors hover:text-indigo-500"
+                      >
+                        《用戶手冊及使用條款》
+                      </button>
+                    </span>
+                  </label>
+                )}
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -350,6 +379,7 @@ export default function AuthPage() {
           <UpcomingEvents />
         </div>
       </div>
+      <UserManualModal open={showManual} onClose={() => setShowManual(false)} />
     </div>
   );
 }
