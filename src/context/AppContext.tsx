@@ -15,6 +15,7 @@ import {
   formatStudentForFrontend,
 } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { logSessionStart } from '@/lib/activityLogger';
 import { buildSchoolCardTasks, SchoolCardCustomEvent, SchoolCardOverride } from '@/lib/buildSchoolCardTasks';
 
 interface AppContextType {
@@ -485,6 +486,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Error ensuring user profile:', profileError);
         return;
       }
+
+      void logSessionStart(authUserId);
 
       await loadRemoteStudents(authUserId);
     };
