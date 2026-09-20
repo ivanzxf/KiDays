@@ -60,6 +60,10 @@ interface AppContextType {
     resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
     applicationId?: string,
   ) => Promise<void>;
+  /** 產生共享驗證碼（8 位數字、1 分鐘有效）；失敗時丟出錯誤訊息。 */
+  createShareCode: (studentId: string) => Promise<string>;
+  /** 以共享驗證碼連結另一位家長已建立的學生檔案；成功回傳學生 id。 */
+  redeemShareCode: (code: string) => Promise<string>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -251,11 +255,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const loadRemoteStudents = useCallback(
-    async (userId: string) => {
+    async () => {
+      // 不篩 user_id：擁有者與共同家長（co_parent_id）皆由 RLS 過濾
       const { data: studentRows, error: studentError } = await supabase
         .from('students')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
       if (studentError) {
@@ -495,7 +499,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       void logSessionStart(authUserId);
 
-      await loadRemoteStudents(authUserId);
+      await loadRemoteStudents();
     };
 
     void ensureProfileAndLoad();
@@ -602,8 +606,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         birth_date: birthDate.toISOString().slice(0, 10),
         application_type: studentData.applicationType,
       })
-      .eq('id', studentId)
-      .eq('user_id', authUserId);
+      .eq('id', studentId);
 
     if (error) {
       console.error('Error updating student:', error);
@@ -632,8 +635,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from('students')
       .delete()
-      .eq('id', studentId)
-      .eq('user_id', authUserId);
+      .eq('id', studentId);
 
     if (error) {
       console.error('Error deleting student:', error);
@@ -645,6 +647,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentStudent?.id === studentId ? updatedStudents[0]?.id ?? null : currentStudent?.id ?? null;
 
     syncStudents(updatedStudents, nextCurrentStudentId);
+  };
+
+  /** 產生共享驗證碼（僅擁有者可產生）；回傳 8 位數字碼，1 分鐘內有效。 */
+  const createShareCode = async (studentId: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('create_share_code', {
+      p_student_id: studentId,
+    });
+
+    if (error) {
+      console.error('Error creating share code:', error);
+      throw new Error(error.message);
+    }
+
+    return data as string;
+  };
+
+  /** 以共享驗證碼連結另一位家長建立的學生檔案，成功後重新載入學生清單。 */
+  const redeemShareCode = async (code: string): Promise<string> => {
+    const { data, error } = await supabase.rpc('redeem_share_code', {
+      p_code: code,
+    });
+
+    if (error) {
+      console.error('Error redeeming share code:', error);
+      throw new Error(error.message);
+    }
+
+    await loadRemoteStudents();
+    return data as string;
   };
 
   const addSchoolToStudent = async (school: DashboardSchool) => {
@@ -1299,6 +1330,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         removeCustomEvent,
         restoreEventDate,
         updateSchoolResult,
+        createShareCode,
+        redeemShareCode,
       }}
     >
       {children}
