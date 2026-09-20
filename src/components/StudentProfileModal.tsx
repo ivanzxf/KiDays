@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { AppStudent } from '@/types';
 import { useApp } from '@/context/AppContext';
 
@@ -56,7 +56,7 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
   useEffect(() => {
     if (!shareCode) return;
 
-    setShareSecondsLeft(60);
+    setShareSecondsLeft(300);
     const timer = window.setInterval(() => {
       setShareSecondsLeft((prev) => {
         if (prev <= 1) {
@@ -277,7 +277,7 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
                 <div className="border-t border-slate-200 pt-6">
                   <label className="mb-2 block text-sm font-bold text-slate-700">家長共享</label>
                   <p className="mb-3 text-xs leading-relaxed text-slate-500">
-                    產生一組 8 位數字驗證碼，讓另一位家長在自己的帳號連結這個學生檔案，共用同一份申請資料（驗證碼 1 分鐘內有效）。
+                    產生一組 8 位數字驗證碼，讓另一位家長在自己的帳號連結這個學生檔案，共用同一份申請資料（驗證碼 5 分鐘內有效）。
                   </p>
 
                   {shareCode && (
@@ -287,7 +287,7 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
                       </div>
                       {shareSecondsLeft > 0 ? (
                         <p className="mt-2 text-xs text-slate-500">
-                          {shareSecondsLeft} 秒後失效
+                          驗證碼 5 分鐘內有效，剩餘 {shareSecondsLeft} 秒
                         </p>
                       ) : (
                         <p className="mt-2 text-xs text-red-600">已過期，請重新產生</p>
@@ -297,18 +297,35 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
 
                   {shareError && <p className="mt-2 text-xs text-red-600">{shareError}</p>}
 
-                  <button
-                    type="button"
-                    onClick={handleGenerateShareCode}
-                    disabled={isGeneratingCode}
-                    className="mt-3 w-full rounded-[10px] border border-primary py-2.5 font-bold text-primary transition-colors hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isGeneratingCode
-                      ? '產生中…'
-                      : shareCode
-                        ? '重新產生驗證碼'
-                        : '產生共享驗證碼'}
-                  </button>
+                  {shareCode ? (
+                    <div className="mt-3 flex justify-center">
+                      <div className="group relative">
+                        <button
+                          type="button"
+                          onClick={handleGenerateShareCode}
+                          disabled={isGeneratingCode}
+                          aria-label="重新產生驗證碼"
+                          className="rounded-[10px] border border-primary p-2.5 text-primary transition-colors hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <RefreshCw
+                            className={`h-5 w-5 ${isGeneratingCode ? 'animate-spin' : ''}`}
+                          />
+                        </button>
+                        <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                          重新產生驗證碼
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleGenerateShareCode}
+                      disabled={isGeneratingCode}
+                      className="mt-3 w-full rounded-[10px] border border-primary py-2.5 font-bold text-primary transition-colors hover:bg-primary-soft disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isGeneratingCode ? '產生中…' : '產生共享驗證碼'}
+                    </button>
+                  )}
                 </div>
               )}
             </>

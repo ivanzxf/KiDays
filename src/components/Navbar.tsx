@@ -75,6 +75,9 @@ export default function Navbar() {
                         <div className="mb-2 rounded-[10px] bg-primary-soft px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary">
                           切換學生
                         </div>
+                        <p className="mb-2 px-1 text-[11px] leading-relaxed text-slate-400">
+                          點右側鉛筆圖標可編輯檔案，並可產生家長共享驗證碼
+                        </p>
                         {students.map((student) => (
                           <motion.div
                             key={student.id}
@@ -105,6 +108,7 @@ export default function Navbar() {
                                 setIsDropdownOpen(false);
                               }}
                               aria-label={`編輯 ${student.name} 的檔案`}
+                              title="編輯檔案、產生家長共享驗證碼"
                               className={`mr-2 rounded-lg p-2 transition-colors ${
                                 currentStudent?.id === student.id
                                   ? 'bg-white/20 hover:bg-white/30'

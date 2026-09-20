@@ -154,7 +154,9 @@ export default function AuthPage() {
           return;
         }
 
-        setSuccessMessage('註冊成功，請到你的 Email 完成驗證後再登入。');
+        setSuccessMessage(
+          '註冊成功！我們已寄出一封驗證郵件到你的信箱，請點擊信中的連結激活帳號後再登入。',
+        );
         setMode('sign-in');
         setPassword('');
         setConfirmPassword('');
