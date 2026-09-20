@@ -93,15 +93,36 @@ function formatEventTime(iso: string, timeLabel?: string | null): string {
 export default function UpcomingEvents({
   gender,
   board = false,
+  schoolIds,
+  schoolNames,
 }: {
   gender?: StudentGender | null;
   /** 看板版：視覺上與學校單卡略作區分（微漸變底＋漸變日期框＋漸變標題）。 */
   board?: boolean;
+  /**
+   * 個人看板：只顯示學生已加入學校的近期事件。
+   * 未提供時不過濾（首頁／登入頁用）。
+   */
+  schoolIds?: string[];
+  /** 個人看板：featured_events 以學校名稱比對，只顯示已加入學校的重點事件。 */
+  schoolNames?: string[];
 }) {
   const [events, setEvents] = useState<DisplayEvent[] | null>(null);
 
+  // 以「內容字串」作為 effect 依賴，避免父層每次 render 產生新陣列造成重複查詢。
+  const schoolIdsKey = (schoolIds ?? []).join('|');
+  const schoolNamesKey = (schoolNames ?? []).join('|');
+  // 有傳 schoolIds 即視為「個人看板」：只顯示學生已加入學校的近期重點。
+  const isPersonalBoard = schoolIds !== undefined;
+
   useEffect(() => {
     let active = true;
+
+    // 個人看板：只保留學生已加入的學校（id 過濾學校事件；名稱比對 featured_events）。
+    const scopedSchoolIds = isPersonalBoard ? schoolIdsKey.split('|').filter(Boolean) : null;
+    const scopedSchoolNames = new Set(
+      schoolNamesKey.split('|').map((name) => name.trim()).filter(Boolean),
+    );
 
     const now = new Date();
     // 範圍起點：今天 0 點（今天的事件即使已過時間也顯示，昨天及之前的不顯示）
@@ -110,22 +131,25 @@ export default function UpcomingEvents({
     const windowEnd = new Date(now);
     windowEnd.setDate(windowEnd.getDate() + 14);
 
+    const schoolEventsQuery = supabase
+      .from('school_events')
+      .select(
+        'id, event_type, start_at, time_label, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type, gender_policy))',
+      )
+      .eq('date_status', 'confirmed')
+      .in('event_type', PUBLIC_EVENT_TYPES)
+      .not('start_at', 'is', null)
+      .gte('start_at', rangeStart.toISOString())
+      .lte('start_at', windowEnd.toISOString())
+      .eq('school_cycles.status', 'published')
+      .eq('school_cycles.application_level', 'primary');
+    const scopedSchoolEventsQuery = scopedSchoolIds
+      ? schoolEventsQuery.in('school_cycles.school_id', scopedSchoolIds)
+      : schoolEventsQuery;
+
     Promise.all([
       // 1. 學校官方事件（僅小學入口）
-      supabase
-        .from('school_events')
-        .select(
-          'id, event_type, start_at, time_label, school_cycles(school_id, application_level, academic_year, schools(name_zh, school_type, gender_policy))',
-        )
-        .eq('date_status', 'confirmed')
-        .in('event_type', PUBLIC_EVENT_TYPES)
-        .not('start_at', 'is', null)
-        .gte('start_at', rangeStart.toISOString())
-        .lte('start_at', windowEnd.toISOString())
-        .eq('school_cycles.status', 'published')
-        .eq('school_cycles.application_level', 'primary')
-        .order('start_at', { ascending: true })
-        .limit(20),
+      scopedSchoolEventsQuery.order('start_at', { ascending: true }).limit(20),
       // 2. 營運方自訂的重點事件（與學校節點無關）
       supabase
         .from('featured_events')
@@ -171,9 +195,11 @@ export default function UpcomingEvents({
           });
         }
 
-        // 自訂重點事件直接加入（不套學校事件的多樣性限制），並依性別過濾
+        // 自訂重點事件直接加入（不套學校事件的多樣性限制），並依性別過濾；
+        // 個人看板另依「已加入學校名稱」過濾
         const featuredList: DisplayEvent[] = (featuredRes.data ?? [])
           .filter((row: FeaturedEventRow) => matchesStudentGender(gender, row.gender))
+          .filter((row: FeaturedEventRow) => !isPersonalBoard || scopedSchoolNames.has(row.school_name.trim()))
           .map((row: FeaturedEventRow) => ({
             schoolName: row.school_name,
             eventLabel: row.title,
@@ -195,7 +221,7 @@ export default function UpcomingEvents({
     return () => {
       active = false;
     };
-  }, [gender]);
+  }, [gender, schoolIdsKey, schoolNamesKey, isPersonalBoard]);
 
   return (
     <motion.aside

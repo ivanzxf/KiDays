@@ -2,8 +2,10 @@ import type { SchoolEventDateStatus, StudentTask, StudentTaskPrivateOverride } f
 import {
   CUSTOM_DATE_LABEL,
   formatCardDateFull,
+  formatCardDateTime,
   formatCardRange,
   formatSchoolCardDateLabel,
+  formatSchoolEventRangeLabel,
   NA_EVENT_SENTINEL,
   NA_LABEL,
   TBD_LABEL,
@@ -61,6 +63,8 @@ type BuildSchoolCardTasksParams = {
 /** 家長私有覆蓋值。 */
 export type SchoolCardOverride = {
   start_at: string;
+  /** 24 小時制自訂時間（如 "10:45"），只在一面／二面使用。 */
+  start_time?: string | null;
   completed?: boolean;
   completed_at?: string | null;
 };
@@ -184,6 +188,8 @@ function buildSingleEventTask(params: {
   overrideDate?: Date | null;
   /** 自訂日期的原始字串（YYYY-MM-DD），寫入 private_override 用。 */
   overrideStartAt?: string | null;
+  /** 自訂時間（24 小時制，如 "10:45"），未填時只顯示日期。 */
+  overrideTime?: string | null;
 }): StudentTask {
   const event = params.eventsByType.get(params.eventType)?.[0] ?? null;
   const state = getEventState(event);
@@ -191,8 +197,8 @@ function buildSingleEventTask(params: {
   const isInterviewEvent =
     params.eventType === 'first_interview' || params.eventType === 'second_interview';
   // 覆蓋優先權：家長自訂 > 學校公開資訊 > TBD
-  const effectiveState =
-    params.overrideDate && isInterviewEvent ? 'confirmed' : state;
+  const useOverride = Boolean(params.overrideDate) && isInterviewEvent;
+  const effectiveState = useOverride ? 'confirmed' : state;
 
   if (state === 'na') {
     return createBaseTask({
@@ -220,12 +226,9 @@ function buildSingleEventTask(params: {
     id: event?.id ?? `card-${params.eventType}-tbd`,
     schoolId: params.schoolId,
     title: params.title,
-    description:
-      effectiveState === 'tbd' || !event
-        ? TBD_LABEL
-        : params.overrideDate
-          ? formatCardDateFull(params.overrideDate)
-          : formatSchoolCardDateLabel(event.start_at, event.date_status),
+    description: useOverride
+      ? formatCardDateTime(params.overrideDate!, params.overrideTime)
+      : formatSchoolEventRangeLabel(event?.start_at, event?.end_at, event?.date_status),
     sortOrder: params.sortOrder,
     dateStatus: effectiveState,
     sourceEventIds: event ? [event.id] : [],
@@ -237,13 +240,13 @@ function buildSingleEventTask(params: {
     isEditableDate: isInterviewEvent,
     isResult: params.eventType === 'result_release',
     startAt: event?.start_at ?? null,
-    privateOverride:
-      params.overrideDate && isInterviewEvent
-        ? {
-            date_label: formatCardDateFull(params.overrideDate),
-            start_at: params.overrideStartAt ?? null,
-          }
-        : null,
+    privateOverride: useOverride
+      ? {
+          date_label: formatCardDateTime(params.overrideDate!, params.overrideTime),
+          start_at: params.overrideStartAt ?? null,
+          start_time: params.overrideTime ?? null,
+        }
+      : null,
     completed: progress?.status === 'completed',
     completedAt: progress?.completed_at,
   });
@@ -416,13 +419,16 @@ function buildRollingTask(params: {
   appliedAt?: string | null;
 }): CardRow {
   const overrideDate = params.overrideRow?.start_at ? parseDate(params.overrideRow.start_at) : null;
+  const overrideTime = params.overrideRow?.start_time ?? null;
 
   return {
     task: createBaseTask({
       id: `rolling-${params.key}`,
       schoolId: params.schoolId,
       title: params.title,
-      description: overrideDate ? formatCardDateFull(overrideDate) : CUSTOM_DATE_LABEL,
+      description: overrideDate
+        ? formatCardDateTime(overrideDate, overrideTime)
+        : CUSTOM_DATE_LABEL,
       sortOrder: params.sortOrder,
       dateStatus: overrideDate ? 'confirmed' : 'tbd',
       sourceEventIds: [],
@@ -434,8 +440,9 @@ function buildRollingTask(params: {
       startAt: params.overrideRow?.start_at ?? null,
       privateOverride: overrideDate
         ? {
-            date_label: formatCardDateFull(overrideDate),
+            date_label: formatCardDateTime(overrideDate, overrideTime),
             start_at: params.overrideRow?.start_at ?? null,
+            start_time: overrideTime,
           }
         : null,
       completed:
@@ -520,9 +527,11 @@ export function buildSchoolCardTasks({
       const event = eventsByType.get(config.key)?.[0] ?? null;
       const isInterview =
         config.key === 'first_interview' || config.key === 'second_interview';
-      const override = event
-        ? overrides?.get(`${studentApplicationId}:${event.id}`)?.start_at ?? null
-        : null;
+      const overrideRow = event
+        ? overrides?.get(`${studentApplicationId}:${event.id}`)
+        : undefined;
+      const override = overrideRow?.start_at ?? null;
+      const overrideTime = overrideRow?.start_time ?? null;
       const overrideDate = override ? parseDate(override) : null;
       const task = buildSingleEventTask({
         schoolId,
@@ -535,6 +544,7 @@ export function buildSchoolCardTasks({
         isToggleable: config.toggleable,
         overrideDate: isInterview ? overrideDate : null,
         overrideStartAt: isInterview ? override : null,
+        overrideTime: isInterview ? overrideTime : null,
       });
       // 排序用的日期：優先採用家長自訂日期
       const date =

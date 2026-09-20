@@ -47,6 +47,8 @@ export type ProgressStatus = 'pending' | 'completed' | 'skipped';
 export interface StudentTaskPrivateOverride {
   date_label?: string | null;
   start_at?: string | null;
+  /** 24 小時制時間（如 "10:45"）；未填時只顯示日期。 */
+  start_time?: string | null;
 }
 
 // Supabase 原生类型（下划线命名）

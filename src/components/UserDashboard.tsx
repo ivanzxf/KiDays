@@ -81,6 +81,12 @@ export default function UserDashboard() {
 
   const currentStudentSchoolIds = new Set(currentStudentSchools.map((school) => school.id));
 
+  // 個人看板「近期重點事件」用：只顯示學生已加入學校的相關事件。
+  const boardSchoolIds = currentStudentSchools.map((school) => school.id);
+  const boardSchoolNames = currentStudentSchools
+    .flatMap((school) => [getSchoolNameZh(school), getSchoolNameEn(school)])
+    .filter((name): name is string => Boolean(name));
+
   const studentGender = currentStudent?.gender ?? null;
 
   const filteredSchools = availableSchools
@@ -222,7 +228,12 @@ export default function UserDashboard() {
             {/* 近期重點事件：固定第一個格子，在拖拽區之外，無法被移動或刪除 */}
             <div className="relative h-full w-full">
               <div className="mx-auto h-full w-full max-w-sm">
-                <UpcomingEvents gender={currentStudent?.gender ?? null} board />
+                <UpcomingEvents
+                  gender={currentStudent?.gender ?? null}
+                  schoolIds={boardSchoolIds}
+                  schoolNames={boardSchoolNames}
+                  board
+                />
               </div>
             </div>
 

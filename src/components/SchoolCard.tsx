@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { DashboardSchool, SchoolEntryPoint, StudentTask } from '@/types';
 import { School as SchoolIcon, CheckCircle2, X, Move, Pencil, Plus, Trash2 } from 'lucide-react';
-import { formatCardDateFull, getDateParts, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
+import { formatCardDateTime, getDateParts, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
 import { useApp } from '@/context/AppContext';
 
 type DragHandleListeners = Record<string, Function>;
@@ -16,6 +16,14 @@ function parseDateInput(value: string): Date | null {
   if (!year || !month || !day) return null;
   const date = new Date(year, month - 1, day);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** 資料庫 TIME 值（"10:45" / "10:45:00"）→ <input type="time"> 用的 "10:45"。 */
+function toTimeInputValue(value?: string | null): string {
+  if (!value) return '';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value.trim());
+  if (!match) return '';
+  return `${match[1].padStart(2, '0')}:${match[2]}`;
 }
 
 /** 以「香港時區」取得日期的 YYYY-MM-DD 鍵，供跨時區比較。 */
@@ -166,6 +174,7 @@ export default function SchoolCard({
   const [listHeight, setListHeight] = useState<number | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editDateValue, setEditDateValue] = useState('');
+  const [editTimeValue, setEditTimeValue] = useState('');
   const [showAddCustom, setShowAddCustom] = useState(false);
   const [customTitle, setCustomTitle] = useState('');
   const [customDateValue, setCustomDateValue] = useState('');
@@ -258,12 +267,15 @@ export default function SchoolCard({
 
   const openEditDate = (task: StudentTask) => {
     setEditingTaskId(task.id);
-    setEditDateValue('');
+    const override = task.private_override;
+    setEditDateValue(override?.start_at ?? '');
+    setEditTimeValue(toTimeInputValue(override?.start_time));
   };
 
   const closeEditDate = () => {
     setEditingTaskId(null);
     setEditDateValue('');
+    setEditTimeValue('');
   };
 
   const saveEditDate = () => {
@@ -272,19 +284,22 @@ export default function SchoolCard({
     if (!date) return;
 
     const startAt = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const startTime = editTimeValue || null;
+    const dateLabel = formatCardDateTime(date, startTime);
 
     const newTasks = localTasks.map(task =>
       task.id === editingTaskId
         ? {
             ...task,
-            description: formatCardDateFull(date),
+            description: dateLabel,
             date_status: 'confirmed' as const,
             start_at: startAt,
             is_toggleable: true,
             is_available: true,
             private_override: {
-              date_label: formatCardDateFull(date),
+              date_label: dateLabel,
               start_at: startAt,
+              start_time: startTime,
             },
           }
         : task
@@ -464,10 +479,10 @@ export default function SchoolCard({
                     <button
                       type="button"
                       onClick={() => openEditDate(task)}
-                      className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-300 transition-colors hover:text-gray-500"
-                      title="自定義結果公佈日期"
+                      className="theme-gradient absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110"
+                      title="自定義結果公佈日期與時間"
                     >
-                      <Pencil className="h-3 w-3" />
+                      <Pencil className="h-3.5 w-3.5" />
                     </button>
                   )}
                   {task.is_custom && !isOverlay && (
@@ -531,10 +546,10 @@ export default function SchoolCard({
                   <button
                     type="button"
                     onClick={() => openEditDate(task)}
-                    className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-300 transition-colors hover:text-gray-500"
-                    title="自定義面試日期"
+                    className="theme-gradient absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110"
+                    title="自定義面試日期與時間"
                   >
-                    <Pencil className="h-3 w-3" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
                 )}
                 {task.is_custom && !isOverlay && (
@@ -587,16 +602,26 @@ export default function SchoolCard({
           <div className="absolute inset-0 bg-black/40" onClick={closeEditDate} />
           <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
             <h3 className="text-base font-bold text-gray-800">
-              自定義「{editingTask.title}」日期
+              自定義「{editingTask.title}」日期與時間
             </h3>
             <p className="mt-1 text-xs text-gray-500">
-              請輸入您的面試日期，輸入後即可勾選該事項。
+              學校只公佈日期區間時，請填上您的實際日期；如已知道具體時間，也可一併填寫。
             </p>
+            <label className="mt-4 block text-[11px] font-semibold text-gray-500">日期</label>
             <input
               type="date"
               value={editDateValue}
               onChange={(event) => setEditDateValue(event.target.value)}
-              className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+            />
+            <label className="mt-3 block text-[11px] font-semibold text-gray-500">
+              時間（選填）
+            </label>
+            <input
+              type="time"
+              value={editTimeValue}
+              onChange={(event) => setEditTimeValue(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
             />
             <div className="mt-5 flex items-center justify-between gap-2">
               {editingTask.private_override?.start_at ? (

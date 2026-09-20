@@ -78,6 +78,8 @@ type StudentApplicationEventOverrideRow = {
   school_event_id: string | null;
   title: string | null;
   start_at: string;
+  /** 24 小時制自訂時間（如 "10:45"）；未填為 null。 */
+  start_time: string | null;
   completed: boolean;
   completed_at: string | null;
 };
@@ -138,10 +140,14 @@ const buildOverrideMap = (rows: StudentApplicationEventOverrideRow[]): Map<strin
   const map = new Map<string, SchoolCardOverride>();
   for (const row of rows) {
     if (row.school_event_id) {
-      map.set(`${row.student_application_id}:${row.school_event_id}`, { start_at: row.start_at });
+      map.set(`${row.student_application_id}:${row.school_event_id}`, {
+        start_at: row.start_at,
+        start_time: row.start_time ?? null,
+      });
     } else if (row.title) {
       map.set(`${row.student_application_id}:title:${row.title}`, {
         start_at: row.start_at,
+        start_time: row.start_time ?? null,
         completed: row.completed ?? false,
         completed_at: row.completed_at ?? null,
       });
@@ -325,7 +331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         applicationIds.length > 0
           ? await supabase
               .from('student_application_event_overrides')
-              .select('student_application_id, school_event_id, title, start_at, completed, completed_at')
+              .select('student_application_id, school_event_id, title, start_at, start_time, completed, completed_at')
               .in('student_application_id', applicationIds)
           : { data: [], error: null };
 
@@ -909,12 +915,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       student_application_id: string;
       school_event_id: string;
       start_at: string;
+      start_time: string | null;
     }[] = [];
     const titleOverridePayload: {
       student_application_id: string;
       school_event_id: null;
       title: string;
       start_at: string;
+      start_time: string | null;
       completed: boolean;
       completed_at: string | null;
     }[] = [];
@@ -923,12 +931,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const startAt = task.private_override?.start_at;
       if (!startAt || task.is_editable_date !== true) continue;
 
+      const startTime = task.private_override?.start_time ?? null;
       const eventId = task.source_event_ids?.[0];
       if (eventId) {
         eventOverridePayload.push({
           student_application_id: appId,
           school_event_id: eventId,
           start_at: startAt,
+          start_time: startTime,
         });
       } else if (task.title) {
         titleOverridePayload.push({
@@ -936,6 +946,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           school_event_id: null,
           title: task.title,
           start_at: startAt,
+          start_time: startTime,
           completed: task.completed,
           completed_at: task.completed ? task.completed_at ?? new Date().toISOString() : null,
         });
@@ -1071,7 +1082,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .eq('student_application_id', appId),
         supabase
           .from('student_application_event_overrides')
-          .select('student_application_id, school_event_id, title, start_at, completed, completed_at')
+          .select('student_application_id, school_event_id, title, start_at, start_time, completed, completed_at')
           .eq('student_application_id', appId),
         supabase
           .from('student_application_custom_events')
