@@ -83,18 +83,14 @@ function countdownLabel(iso: string, now: Date): { label: string; tone: 'today' 
   return { label: `${days} 天後`, tone: 'later' };
 }
 
-/** 事件時間：有自訂時間文字（多場）時優先使用，否則由 start_at 推算（例如「 · 上午9時」）。 */
+/** 事件時間：有自訂時間文字（多場）時優先使用，否則由 start_at 推算（24 小時制，例如「 · 09:30」）。 */
 function formatEventTime(iso: string, timeLabel?: string | null): string {
   if (timeLabel) return ` · ${timeLabel}`;
   const date = new Date(iso);
   const hour = date.getHours();
   const minute = date.getMinutes();
   if (hour === 0 && minute === 0) return '';
-  const period = hour < 12 ? '上午' : '下午';
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return minute === 0
-    ? ` · ${period}${hour12}時`
-    : ` · ${period}${hour12}時${minute}分`;
+  return ` · ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
 /** 營運精選事件：依性別過濾，個人看板另以「已加入學校名稱」比對。 */

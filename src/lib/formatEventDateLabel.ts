@@ -64,7 +64,7 @@ export function formatCardRange(start: Date, end: Date): string {
 }
 
 /**
- * 24 小時制時間字串（"10:45" / "10:45:00"）→ 顯示用 12 小時制（"10:45am" / "10am"）。
+ * 24 小時制時間字串（"10:45" / "10:45:00"）→ 顯示用 24 小時制（"10:45"）。
  * 空值或無法解析時回傳空字串。
  */
 export function formatTimeLabel(time: string | null | undefined): string {
@@ -74,12 +74,10 @@ export function formatTimeLabel(time: string | null | undefined): string {
   const hour = Number(match[1]);
   const minute = Number(match[2]);
   if (Number.isNaN(hour) || Number.isNaN(minute)) return '';
-  const period = hour < 12 ? 'am' : 'pm';
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return minute === 0 ? `${hour12}${period}` : `${hour12}:${String(minute).padStart(2, '0')}${period}`;
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
-/** 自訂日期＋時間：26 Sep 2026, 10:45am（無時間時只顯示日期）。 */
+/** 自訂日期＋時間：26 Sep 2026, 10:45（無時間時只顯示日期）。 */
 export function formatCardDateTime(d: Date, time?: string | null): string {
   const label = formatCardDateFull(d);
   const timeLabel = formatTimeLabel(time);

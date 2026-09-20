@@ -479,8 +479,13 @@ export default function SchoolCard({
                     <button
                       type="button"
                       onClick={() => openEditDate(task)}
-                      className="theme-gradient absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110"
-                      title="自定義結果公佈日期與時間"
+                      disabled={task.completed}
+                      className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform ${
+                        task.completed
+                          ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                          : 'theme-gradient text-white hover:scale-110'
+                      }`}
+                      title={task.completed ? '已完成，無法編輯' : '自定義結果公佈日期與時間'}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -546,8 +551,13 @@ export default function SchoolCard({
                   <button
                     type="button"
                     onClick={() => openEditDate(task)}
-                    className="theme-gradient absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-110"
-                    title="自定義面試日期與時間"
+                    disabled={task.completed}
+                    className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform ${
+                      task.completed
+                        ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                        : 'theme-gradient text-white hover:scale-110'
+                    }`}
+                    title={task.completed ? '已完成，無法編輯' : '自定義面試日期與時間'}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -615,14 +625,49 @@ export default function SchoolCard({
               className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
             />
             <label className="mt-3 block text-[11px] font-semibold text-gray-500">
-              時間（選填）
+              時間（選填，24 小時制）
             </label>
-            <input
-              type="time"
-              value={editTimeValue}
-              onChange={(event) => setEditTimeValue(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
-            />
+            <div className="mt-1 flex items-center gap-2">
+              <select
+                value={editTimeValue ? editTimeValue.slice(0, 2) : ''}
+                onChange={(event) =>
+                  setEditTimeValue(
+                    event.target.value
+                      ? `${event.target.value}:${editTimeValue.slice(3, 5) || '00'}`
+                      : '',
+                  )
+                }
+                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              >
+                <option value="">--</option>
+                {Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0')).map((hour) => (
+                  <option key={hour} value={hour}>
+                    {hour}
+                  </option>
+                ))}
+              </select>
+              <span className="text-sm font-semibold text-gray-400">:</span>
+              <select
+                value={editTimeValue ? editTimeValue.slice(3, 5) : ''}
+                onChange={(event) =>
+                  setEditTimeValue(
+                    event.target.value
+                      ? `${editTimeValue.slice(0, 2) || '00'}:${event.target.value}`
+                      : '',
+                  )
+                }
+                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              >
+                <option value="">--</option>
+                {Array.from(new Set(['00', '15', '30', '45', editTimeValue.slice(3, 5)]))
+                  .filter(Boolean)
+                  .map((minute) => (
+                    <option key={minute} value={minute}>
+                      {minute}
+                    </option>
+                  ))}
+              </select>
+            </div>
             <div className="mt-5 flex items-center justify-between gap-2">
               {editingTask.private_override?.start_at ? (
                 <button
