@@ -384,7 +384,7 @@ export default function UpcomingEvents({
                   ? 'bg-amber-50 text-amber-600'
                   : 'bg-slate-100 text-slate-500';
             return (
-              <div key={`${event.schoolName}|${event.eventLabel}|${event.startAt}`} className="flex flex-1 items-center gap-4 py-1.5">
+              <div key={`${event.schoolName}|${event.eventLabel}|${event.startAt}`} className="flex items-center gap-4 py-2.5">
                 <div
                 className={`flex w-12 flex-shrink-0 flex-col items-center rounded-lg py-1 ${
                   board ? 'theme-gradient shadow-md' : 'bg-indigo-50'

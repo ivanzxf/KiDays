@@ -877,6 +877,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       completed_at: task.completed ? task.completed_at ?? new Date().toISOString() : null,
     }));
 
+    const applicationTask = normalizedTasks.find((task) => task.completion_source === 'application');
+
+    // 先即時更新前端狀態：學校卡與個人看板「近期重點事件」立即反映變更，
+    // 不等待下方資料庫往返（任一寫入失敗也會保留這個前端結果）。
+    updateCurrentStudent((student) => ({
+      ...student,
+      addedSchools: student.addedSchools.map((school) =>
+        school.id === schoolId
+          ? patchEntryPoints(school, appId, (current) => ({
+              ...current,
+              applicationStatus:
+                applicationTask && applicationTask.is_available !== false
+                  ? resolveNextApplicationStatus(current.applicationStatus, applicationTask.completed)
+                  : current.applicationStatus,
+              tasks: normalizedTasks,
+            }))
+          : school
+      ),
+    }));
+
     const progressTasks = normalizedTasks.filter(
       (task) =>
         task.completion_source !== 'application' &&
@@ -905,8 +925,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
     }
-
-    const applicationTask = normalizedTasks.find((task) => task.completion_source === 'application');
 
     // 持久化家長自訂日期：只寫該學生的私有覆蓋表，不影響學校主資料庫
     // - 有 school_event_id 的可編輯列（一面/二面）→ 以事件為鍵
@@ -1041,22 +1059,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error('Error updating custom event completion:', error);
       }
     }
-
-    updateCurrentStudent((student) => ({
-      ...student,
-      addedSchools: student.addedSchools.map((school) =>
-        school.id === schoolId
-          ? patchEntryPoints(school, appId, (current) => ({
-              ...current,
-              applicationStatus:
-                applicationTask && applicationTask.is_available !== false
-                  ? resolveNextApplicationStatus(current.applicationStatus, applicationTask.completed)
-                  : current.applicationStatus,
-              tasks: normalizedTasks,
-            }))
-          : school
-      ),
-    }));
   };
 
   /**
