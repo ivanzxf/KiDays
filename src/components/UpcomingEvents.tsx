@@ -332,18 +332,18 @@ export default function UpcomingEvents({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.12 }}
-      className={`flex h-full w-full flex-col rounded-[2rem] p-5 shadow-2xl lg:p-6 ${
+      className={`flex h-full w-full flex-col rounded-xl border border-slate-200 p-5 lg:p-6 ${
         board
-          ? 'border-4 border-indigo-300 bg-gradient-to-b from-white via-white to-indigo-50/80'
+          ? 'border-primary-border bg-primary-soft/40'
           : 'bg-white'
       }`}
      >
        <div className="flex flex-shrink-0 items-center justify-between gap-3">
          <div className="flex items-center gap-2.5">
-           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
              <CalendarClock className="h-4 w-4 text-white" />
            </div>
-           <h2 className={`text-base font-black text-slate-900 ${board ? 'theme-gradient-text' : ''}`}>近期重點事件</h2>
+           <h2 className="text-base font-black text-slate-900">近期重點事件</h2>
          </div>
        </div>
 
@@ -375,7 +375,7 @@ export default function UpcomingEvents({
             const countdown = countdownLabel(event.startAt, now);
             const toneClass =
               countdown.tone === 'today'
-                ? 'bg-emerald-50 text-emerald-600'
+                ? 'bg-green-50 text-green-700'
                 : countdown.tone === 'soon'
                   ? 'bg-amber-50 text-amber-600'
                   : 'bg-slate-100 text-slate-500';
@@ -383,17 +383,17 @@ export default function UpcomingEvents({
               <div key={`${event.schoolName}|${event.eventLabel}|${event.startAt}`} className="flex items-center gap-4 py-2.5">
                 <div
                 className={`flex w-12 flex-shrink-0 flex-col items-center rounded-lg py-1 ${
-                  board ? 'theme-gradient shadow-md' : 'bg-indigo-50'
+                  board ? 'theme-solid' : 'bg-primary-soft'
                 }`}
               >
                 <span
                   className={`text-base font-black leading-tight ${
-                    board ? 'text-white' : 'text-indigo-700'
+                    board ? 'text-white' : 'text-primary'
                   }`}
                 >
                   {date.getDate()}
                 </span>
-                <span className={`text-[10px] font-bold ${board ? 'text-white/80' : 'text-indigo-400'}`}>
+                <span className={`text-[10px] font-bold ${board ? 'text-white/80' : 'text-primary/70'}`}>
                   {date.getMonth() + 1}月
                 </span>
               </div>

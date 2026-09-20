@@ -1,22 +1,5 @@
-'use client';
-
-import { AppProvider, useApp } from '@/context/AppContext';
+import { AppProvider } from '@/context/AppContext';
 import './globals.css';
-import { useEffect } from 'react';
-
-function ThemeWrapper({ children }: { children: React.ReactNode }) {
-  const { currentStudent } = useApp();
-  
-  useEffect(() => {
-    if (currentStudent?.gender) {
-      document.documentElement.setAttribute('data-theme', currentStudent.gender);
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-  }, [currentStudent]);
-
-  return <>{children}</>;
-}
 
 export default function RootLayout({
   children,
@@ -25,12 +8,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-HK">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+HK:wght@400;500;700;900&family=Noto+Serif+HK:wght@600;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen bg-background-gray">
-        <AppProvider>
-          <ThemeWrapper>
-            {children}
-          </ThemeWrapper>
-        </AppProvider>
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );

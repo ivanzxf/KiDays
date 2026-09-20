@@ -12,7 +12,7 @@ export default function Home() {
   if (!authReady) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background-gray">
-        <div className="rounded-3xl bg-white px-6 py-5 text-sm font-semibold text-slate-600 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white px-6 py-5 text-sm font-semibold text-slate-600">
           正在恢復登入狀態...
         </div>
       </div>

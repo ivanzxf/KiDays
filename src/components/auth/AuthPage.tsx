@@ -178,10 +178,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#4f46e5_0%,#1e1b4b_42%,#09090f_100%)]">
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_28%,transparent_72%,rgba(255,255,255,0.08))]" />
-      <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-white/15 blur-3xl" />
-
+    <div className="relative min-h-screen bg-background-gray">
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-10 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -189,14 +186,14 @@ export default function AuthPage() {
           transition={{ duration: 0.45 }}
           className="mb-10 text-center"
         >
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2.5 rounded-[10px] border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-primary">
             <GraduationCap className="h-4 w-4" />
             KiDays 童步
           </div>
-          <h1 className="mt-5 text-3xl font-black leading-tight text-white sm:text-4xl">
+          <h1 className="mt-5 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
             開始您的申請之旅
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-white/70 sm:text-base">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600 sm:text-base">
             把每間學校的申請進度、重要日期與面試安排收進同一個看板，一步步從容準備。
           </p>
         </motion.div>
@@ -206,12 +203,12 @@ export default function AuthPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.08 }}
-            className="flex w-full flex-col rounded-[2rem] bg-white p-5 shadow-2xl lg:p-6"
+            className="flex w-full flex-col rounded-xl border border-slate-200 bg-white p-5 lg:p-6"
           >
-              <div className="flex rounded-2xl bg-slate-100 p-1">
+              <div className="flex rounded-[10px] bg-slate-100 p-1">
                 <button
                   onClick={() => handleModeChange('sign-in')}
-                  className={`flex-1 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                  className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
                     !isSignUp ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
                   }`}
                 >
@@ -219,7 +216,7 @@ export default function AuthPage() {
                 </button>
                 <button
                   onClick={() => handleModeChange('sign-up')}
-                  className={`flex-1 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                  className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
                     isSignUp ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
                   }`}
                 >
@@ -241,7 +238,7 @@ export default function AuthPage() {
 
               <form className="mt-3 flex flex-1 flex-col justify-evenly gap-3" onSubmit={handleSubmit}>
                 <label className={`block ${isResetPassword ? 'hidden' : ''}`}>
-                  <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
+                  <div className="flex items-center rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-primary focus-within:bg-white">
                     <Mail className="h-5 w-5 text-slate-400" />
                     <input
                       type="email"
@@ -262,7 +259,7 @@ export default function AuthPage() {
                       isSignUp || isResetPassword ? '' : 'col-span-2'
                     }`}
                   >
-                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
+                    <div className="flex items-center rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-primary focus-within:bg-white">
                       <LockKeyhole className="h-5 w-5 text-slate-400" />
                       <input
                         type="password"
@@ -279,7 +276,7 @@ export default function AuthPage() {
                   </label>
 
                   <label className={`block ${isSignUp || isResetPassword ? '' : 'hidden'}`}>
-                    <div className="flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-indigo-500 focus-within:bg-white">
+                    <div className="flex items-center rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2 focus-within:border-primary focus-within:bg-white">
                       <LockKeyhole className="h-5 w-5 text-slate-400" />
                       <input
                         type="password"
@@ -295,13 +292,13 @@ export default function AuthPage() {
                 </div>
 
                 {errorMessage && (
-                  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
                     {errorMessage}
                   </div>
                 )}
 
                 {successMessage && (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                  <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
                     {successMessage}
                   </div>
                 )}
@@ -312,14 +309,14 @@ export default function AuthPage() {
                       type="checkbox"
                       checked={agreedToTerms}
                       onChange={(event) => setAgreedToTerms(event.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-indigo-600"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
                     />
                     <span>
                       我已閱讀並同意
                       <button
                         type="button"
                         onClick={() => setShowManual(true)}
-                        className="mx-1 font-bold text-indigo-600 underline underline-offset-2 transition-colors hover:text-indigo-500"
+                        className="mx-1 font-bold text-primary underline underline-offset-2 transition-colors hover:text-primary/80"
                       >
                         《用戶手冊及使用條款》
                       </button>
@@ -330,7 +327,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:from-indigo-600 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-[10px] theme-solid px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   {submitLabel}
@@ -343,7 +340,7 @@ export default function AuthPage() {
                     想起密碼了？
                     <button
                       onClick={() => handleModeChange('sign-in')}
-                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                      className="ml-2 font-bold text-primary transition-colors hover:text-primary/80"
                     >
                       返回登入
                     </button>
@@ -355,7 +352,7 @@ export default function AuthPage() {
                     {isSignUp ? '已經有帳號了？' : '還沒有帳號？'}
                     <button
                       onClick={() => handleModeChange(isSignUp ? 'sign-in' : 'sign-up')}
-                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                      className="ml-2 font-bold text-primary transition-colors hover:text-primary/80"
                     >
                       {isSignUp ? '改用登入' : '立即註冊'}
                     </button>
@@ -367,7 +364,7 @@ export default function AuthPage() {
                     忘記密碼？
                     <button
                       onClick={() => handleModeChange('forgot-password')}
-                      className="ml-2 font-bold text-indigo-600 transition-colors hover:text-indigo-500"
+                      className="ml-2 font-bold text-primary transition-colors hover:text-primary/80"
                     >
                       重設密碼
                     </button>

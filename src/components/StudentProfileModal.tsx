@@ -59,46 +59,46 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/40"
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative flex max-h-[calc(100dvh-3rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl"
+        className="relative flex max-h-[calc(100dvh-3rem)] w-full max-w-md flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
       >
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-50 p-6">
-          <h3 className="text-xl font-extrabold text-gray-800">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200 p-6">
+          <h3 className="text-xl font-bold text-slate-800">
             {isEdit ? '編輯學生檔案' : '新增學生檔案'}
           </h3>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 transition-all hover:bg-gray-100"
+            className="rounded-lg p-2 transition-colors hover:bg-slate-100"
             aria-label="關閉"
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className="h-5 w-5 text-slate-400" />
           </button>
         </div>
 
         <div className="custom-scrollbar space-y-6 overflow-y-auto p-6">
           <div>
-            <label className="mb-2 block text-sm font-bold text-gray-700">學生暱稱</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">學生暱稱</label>
             <input
               type="text"
               placeholder="例如：小明"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl border-2 border-transparent bg-gray-50 px-4 py-3 font-medium outline-none transition-all focus:border-indigo-500 focus:bg-white"
+              className="w-full rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2.5 font-medium outline-none transition-colors focus:border-primary focus:bg-white"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-2 block text-sm font-bold text-gray-700">出生年份</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">出生年份</label>
               <select
                 value={birthYear}
                 onChange={(e) => setBirthYear(parseInt(e.target.value))}
-                className="w-full appearance-none rounded-2xl border-2 border-transparent bg-gray-50 px-4 py-3 font-medium outline-none transition-all focus:border-indigo-500 focus:bg-white"
+                className="w-full appearance-none rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2.5 font-medium outline-none transition-colors focus:border-primary focus:bg-white"
               >
                 {birthYears.map((year) => (
                   <option key={year} value={year}>
@@ -108,11 +108,11 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-gray-700">出生月份</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">出生月份</label>
               <select
                 value={birthMonth}
                 onChange={(e) => setBirthMonth(parseInt(e.target.value))}
-                className="w-full appearance-none rounded-2xl border-2 border-transparent bg-gray-50 px-4 py-3 font-medium outline-none transition-all focus:border-indigo-500 focus:bg-white"
+                className="w-full appearance-none rounded-[10px] border border-slate-200 bg-slate-50 px-4 py-2.5 font-medium outline-none transition-colors focus:border-primary focus:bg-white"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                   <option key={month} value={month}>
@@ -124,15 +124,15 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold text-gray-700">性別</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">性別</label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={() => setGender('boy')}
-                className={`rounded-2xl py-3 font-bold transition-all border-2 ${
+                className={`rounded-[10px] border py-3 font-bold transition-colors ${
                   gender === 'boy'
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                    : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                    ? 'border-primary bg-primary-soft text-primary'
+                    : 'border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 男孩子
@@ -140,10 +140,10 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
               <button
                 type="button"
                 onClick={() => setGender('girl')}
-                className={`rounded-2xl py-3 font-bold transition-all border-2 ${
+                className={`rounded-[10px] border py-3 font-bold transition-colors ${
                   gender === 'girl'
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                    : 'border-transparent bg-gray-50 text-gray-500 hover:bg-gray-100'
+                    ? 'border-primary bg-primary-soft text-primary'
+                    : 'border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 女孩子
@@ -152,14 +152,14 @@ export default function StudentProfileModal({ mode, student, onClose }: StudentP
           </div>
         </div>
 
-        <div className="flex-shrink-0 border-t border-gray-50 p-6">
+        <div className="flex-shrink-0 border-t border-slate-200 p-6">
           <button
             onClick={handleSave}
             disabled={!canSave}
-            className={`w-full rounded-2xl py-4 font-bold shadow-lg transition-all ${
+            className={`w-full rounded-[10px] py-3.5 font-bold transition-colors ${
               canSave
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
-                : 'cursor-not-allowed bg-gray-100 text-gray-400'
+                ? 'theme-solid text-white hover:opacity-90 active:opacity-80'
+                : 'cursor-not-allowed bg-slate-100 text-slate-400'
             }`}
           >
             {isEdit ? '儲存變更' : '創建檔案'}

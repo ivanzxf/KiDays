@@ -31,12 +31,12 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-xl font-bold text-academic-blue mb-6">學校信息篩選器</h2>
+    <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <h2 className="text-xl font-bold text-primary mb-6">學校信息篩選器</h2>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">學校類型</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">學校類型</label>
           <div className="flex space-x-4">
             {[
               { value: 'all', label: '全部' },
@@ -49,20 +49,20 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
                   value={option.value}
                   checked={filters.type === option.value}
                   onChange={() => handleFilterChange('type', option.value as SchoolFilterType)}
-                  className="accent-accent-blue"
+                  className="accent-primary"
                 />
-                <span className="text-sm text-gray-700">{option.label}</span>
+                <span className="text-sm text-slate-700">{option.label}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">地區</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">地區</label>
           <select
             value={filters.district}
             onChange={(e) => handleFilterChange('district', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="all">全部地區</option>
             <option value="港島區">港島區</option>
@@ -72,7 +72,7 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">性別</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">性別</label>
           <div className="flex space-x-4">
             {[
               { value: 'all', label: '全部' },
@@ -87,20 +87,20 @@ export default function SchoolFilterSection({ onFilterChange }: SchoolFilterSect
                   value={option.value}
                   checked={filters.gender === option.value}
                   onChange={() => handleFilterChange('gender', option.value as SchoolGenderFilter)}
-                  className="accent-accent-blue"
+                  className="accent-primary"
                 />
-                <span className="text-sm text-gray-700">{option.label}</span>
+                <span className="text-sm text-slate-700">{option.label}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">校網</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">校網</label>
           <select
             value={filters.schoolNet}
             onChange={(e) => handleFilterChange('schoolNet', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="all">全部校網</option>
             <option value="11">11</option>

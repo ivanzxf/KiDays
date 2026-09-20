@@ -109,9 +109,9 @@ function formatDateTime(value: string | null): string {
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-slate-200 bg-white p-5">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-indigo-900">{title}</h2>
+        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
         {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
       </div>
       {children}
@@ -121,9 +121,9 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 
 function StatTile({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   return (
-    <div className="rounded-xl bg-indigo-50/70 px-4 py-3">
-      <p className="text-xs font-medium text-indigo-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-indigo-900">{value}</p>
+    <div className="rounded-lg bg-primary-soft px-4 py-3">
+      <p className="text-xs font-medium text-primary">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
       {sub ? <p className="mt-0.5 text-xs text-slate-500">{sub}</p> : null}
     </div>
   );
@@ -141,11 +141,11 @@ function BarList({ items, emptyText = '暫無資料' }: { items: CountItem[]; em
         <li key={item.label} className="text-sm">
           <div className="flex items-center justify-between gap-3">
             <span className="truncate text-slate-700">{item.label}</span>
-            <span className="shrink-0 font-semibold text-indigo-700">{item.count}</span>
+            <span className="shrink-0 font-semibold text-primary">{item.count}</span>
           </div>
           <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600"
+              className="h-full rounded-full bg-primary"
               style={{ width: `${(item.count / max) * 100}%` }}
             />
           </div>
@@ -168,7 +168,7 @@ function Trend({ points, emptyText }: { points: TrendPoint[]; emptyText: string 
         <div key={point.date} className="flex flex-1 flex-col items-center gap-1">
           <span className="text-[10px] text-slate-400">{point.count || ''}</span>
           <div
-            className="w-full rounded-t bg-gradient-to-t from-indigo-500 to-indigo-300"
+            className="w-full rounded-t bg-primary/70"
             style={{ height: `${Math.max((point.count / max) * 72, point.count > 0 ? 4 : 0)}px` }}
             title={`${point.date}：${point.count}`}
           />
@@ -245,13 +245,13 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => void loadMetrics()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
           >
             重新載入
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            className="rounded-lg border border-primary-border px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft"
           >
             回到看板
           </Link>
@@ -266,7 +266,7 @@ export default function AdminPage() {
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-indigo-900">KiDays 後台</h1>
+          <h1 className="text-2xl font-bold text-slate-900">KiDays 後台</h1>
           <p className="mt-1 text-xs text-slate-500">
             資料更新時間：{formatDateTime(metrics.generatedAt)}（香港時間）
           </p>
@@ -275,13 +275,13 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => void loadMetrics()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
           >
             重新整理
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            className="rounded-lg border border-primary-border px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft"
           >
             回到看板
           </Link>

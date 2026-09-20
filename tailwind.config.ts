@@ -9,12 +9,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        "academic-blue": "#1a4780",
-        "accent-blue": "#4A90E2",
-        "background-gray": "#F5F7FA",
-      },
-      boxShadow: {
-        "card-hover": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+        /* 設計方向 A：學院深藍 + 錄取綠 */
+        primary: "#1E3A5F",
+        "primary-soft": "#EAF0F7",
+        "primary-border": "#C7D5E5",
+        accent: "#16A34A",
+        "background-gray": "#F8FAFC",
       },
     },
   },

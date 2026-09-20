@@ -70,8 +70,8 @@ const RESULT_OPTIONS: {
   {
     value: 'offered',
     label: '取錄',
-    activeClass: 'bg-emerald-500 border-emerald-500 text-white',
-    idleClass: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+    activeClass: 'bg-green-600 border-green-600 text-white',
+    idleClass: 'border-green-200 bg-green-50 text-green-700',
   },
   {
     value: 'waitlisted',
@@ -88,7 +88,7 @@ const RESULT_OPTIONS: {
 ];
 
 const RESULT_BADGE: Record<'offered' | 'waitlisted' | 'rejected', { label: string; className: string }> = {
-  offered: { label: '已取錄', className: 'bg-emerald-50 text-emerald-600' },
+  offered: { label: '已取錄', className: 'bg-green-50 text-green-700' },
   waitlisted: { label: '候補中', className: 'bg-amber-50 text-amber-600' },
   rejected: { label: '落選', className: 'bg-rose-50 text-rose-500' },
 };
@@ -333,14 +333,14 @@ export default function SchoolCard({
 
   return (
     <>
-    <div className="relative h-full w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-5 border border-white/30 overflow-hidden flex flex-col">
+    <div className="relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5">
       {!isOverlay && (
         <div className="absolute right-0 top-0 flex items-center gap-0">
           <div 
             ref={dragHandleRef}
             {...dragHandleAttributes}
             {...dragHandleListeners}
-            className="flex h-8 w-8 items-center justify-center text-gray-400 transition-all hover:theme-text cursor-grab active:cursor-grabbing"
+            className="flex h-8 w-8 items-center justify-center text-slate-400 transition-colors hover:theme-text cursor-grab active:cursor-grabbing"
             title="按住拖拽排序"
           >
             <Move className="h-4 w-4" />
@@ -348,7 +348,7 @@ export default function SchoolCard({
           {onDelete && (
             <button
               onClick={() => onDelete(id)}
-              className="-ml-2 flex h-8 w-8 items-center justify-center text-gray-400 transition-all hover:text-red-500"
+              className="-ml-2 flex h-8 w-8 items-center justify-center text-slate-400 transition-colors hover:text-red-500"
               title="刪除學校"
             >
               <X className="h-4 w-4" />
@@ -359,16 +359,16 @@ export default function SchoolCard({
 
       <div className="mb-1 min-h-[48px] pr-1">
         <div className={`flex min-w-0 items-center gap-3 ${entryPoints.length > 1 ? 'pr-12' : ''}`}>
-          <div className="h-11 w-11 flex-shrink-0 self-center rounded-xl theme-gradient flex items-center justify-center shadow-lg">
+          <div className="h-11 w-11 flex-shrink-0 self-center rounded-lg theme-solid flex items-center justify-center">
             <SchoolIcon className="w-6 h-6 text-white" />
           </div>
           <div className="min-w-0 flex-1 self-center">
-            <h3 className="break-words whitespace-normal text-[15px] font-extrabold leading-5 text-gray-800">
+            <h3 className="break-words whitespace-normal text-[15px] font-extrabold leading-5 text-slate-800">
               {nameZh}
             </h3>
             <div className="mt-0.5 flex flex-wrap items-center gap-1">
               {activeEntry?.isRollingAdmission && (
-                <span className="inline-flex w-fit items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold leading-4 text-indigo-600">
+                <span className="inline-flex w-fit items-center rounded bg-primary-soft px-2 py-0.5 text-[9px] font-bold leading-4 text-primary">
                   Rolling Admissions
                 </span>
               )}
@@ -382,7 +382,7 @@ export default function SchoolCard({
             </div>
           </div>
           {entryPoints.length > 1 && (
-            <div className="flex flex-shrink-0 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5">
+            <div className="flex flex-shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-0.5">
               {entryPoints.map((entry) => {
                 const isActive = entry.studentApplicationId === activeEntry?.studentApplicationId;
                 const label = entry.applicationLevel === 'kindergarten' ? 'Prep' : 'Year 1';
@@ -392,7 +392,7 @@ export default function SchoolCard({
                     type="button"
                     onClick={() => handleSelectEntry(entry.studentApplicationId)}
                     className={`rounded-md px-2 py-0.5 text-[10px] font-bold leading-4 transition-colors ${
-                      isActive ? 'theme-gradient text-white' : 'text-gray-500 hover:text-gray-700'
+                      isActive ? 'theme-solid text-white' : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     {label}
@@ -428,14 +428,14 @@ export default function SchoolCard({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`group flex items-start space-x-2 rounded-xl px-2 py-1.5 transition-all ${
-              task.is_available === false ? 'opacity-60' : 'hover:bg-gray-50'
+            className={`group flex items-start space-x-2 rounded-lg px-2 py-1.5 transition-colors ${
+              task.is_available === false ? 'opacity-60' : 'hover:bg-slate-50'
             }`}
           >
             {isResultRow ? (
               /* 結果公佈行：三態結果按鈕，與標題同一行；已選一態時其餘轉灰 */
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <label className="flex-shrink-0 text-[12px] font-semibold leading-5 text-gray-600 group-hover:theme-text">
+                <label className="flex-shrink-0 text-[12px] font-semibold leading-5 text-slate-600 group-hover:theme-text">
                   {task.title}
                 </label>
                 <div className={`flex min-w-0 items-center gap-1 ${resultDisabled ? 'opacity-50' : ''}`}>
@@ -454,7 +454,7 @@ export default function SchoolCard({
                           selected
                             ? option.activeClass
                             : dimmed
-                              ? 'border-gray-200 bg-gray-100 text-gray-400'
+                              ? 'border-slate-200 bg-slate-100 text-slate-400'
                               : option.idleClass
                         }`}
                       >
@@ -467,10 +467,10 @@ export default function SchoolCard({
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
                       task.description === NA_LABEL || task.is_available === false
-                        ? 'bg-gray-100 text-gray-400'
+                        ? 'bg-slate-100 text-slate-400'
                       : isDatePending(task.date_status, undefined, task.description)
                         ? 'bg-amber-50 text-amber-600'
-                        : 'bg-gray-100 text-gray-500'
+                        : 'bg-slate-100 text-slate-500'
                     }`}
                   >
                     {task.description ?? TBD_LABEL}
@@ -480,10 +480,10 @@ export default function SchoolCard({
                       type="button"
                       onClick={() => openEditDate(task)}
                       disabled={task.completed}
-                      className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform ${
+                      className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md transition-colors ${
                         task.completed
-                          ? 'cursor-not-allowed bg-gray-200 text-gray-400'
-                          : 'theme-gradient text-white hover:scale-110'
+                          ? 'cursor-not-allowed bg-slate-200 text-slate-400'
+                          : 'theme-solid text-white hover:opacity-90'
                       }`}
                       title={task.completed ? '已完成，無法編輯' : '自定義結果公佈日期與時間'}
                     >
@@ -494,7 +494,7 @@ export default function SchoolCard({
                     <button
                       type="button"
                       onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
-                      className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-200 transition-colors hover:text-red-400"
+                      className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-slate-200 transition-colors hover:text-red-400"
                       title="刪除自訂事件"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -511,10 +511,10 @@ export default function SchoolCard({
               disabled={task.is_toggleable === false || task.is_available === false}
               className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-2 transition-all ${
                 task.completed
-                  ? 'border-transparent theme-gradient'
+                  ? 'border-transparent theme-solid'
                   : task.is_toggleable === false || task.is_available === false
-                    ? 'border-gray-100 bg-gray-50'
-                  : 'border-gray-200 group-hover:theme-border'
+                    ? 'border-slate-100 bg-slate-50'
+                  : 'border-slate-200 group-hover:theme-border'
               }`}
             >
               {task.completed && (
@@ -523,12 +523,12 @@ export default function SchoolCard({
             </motion.button>
             <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
               <label
-                className={`min-w-0 flex-1 text-[12px] font-semibold leading-5 transition-all ${
+                className={`min-w-0 flex-1 text-[12px] font-semibold leading-5 transition-colors ${
                   task.completed
-                    ? 'text-gray-300 line-through'
+                    ? 'text-slate-300 line-through'
                     : task.is_available === false
-                      ? 'text-gray-400'
-                    : 'text-gray-600 group-hover:theme-text'
+                      ? 'text-slate-400'
+                    : 'text-slate-600 group-hover:theme-text'
                 }`}
               >
                 {task.title}
@@ -537,12 +537,12 @@ export default function SchoolCard({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold leading-5 ${
                     task.completed
-                      ? 'bg-gray-100 text-gray-300 line-through'
+                      ? 'bg-slate-100 text-slate-300 line-through'
                       : task.description === NA_LABEL || task.is_available === false
-                        ? 'bg-gray-100 text-gray-400'
+                        ? 'bg-slate-100 text-slate-400'
                       : isDatePending(task.date_status, undefined, task.description)
                         ? 'bg-amber-50 text-amber-600'
-                        : 'bg-gray-100 text-gray-500'
+                        : 'bg-slate-100 text-slate-500'
                   }`}
                 >
                   {task.description ?? TBD_LABEL}
@@ -552,10 +552,10 @@ export default function SchoolCard({
                     type="button"
                     onClick={() => openEditDate(task)}
                     disabled={task.completed}
-                    className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform ${
+                    className={`absolute left-full top-1/2 ml-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md transition-colors ${
                       task.completed
-                        ? 'cursor-not-allowed bg-gray-200 text-gray-400'
-                        : 'theme-gradient text-white hover:scale-110'
+                        ? 'cursor-not-allowed bg-slate-200 text-slate-400'
+                        : 'theme-solid text-white hover:opacity-90'
                     }`}
                     title={task.completed ? '已完成，無法編輯' : '自定義面試日期與時間'}
                   >
@@ -566,7 +566,7 @@ export default function SchoolCard({
                   <button
                     type="button"
                     onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
-                    className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-gray-200 transition-colors hover:text-red-400"
+                    className="absolute left-full top-1/2 ml-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-slate-200 transition-colors hover:text-red-400"
                     title="刪除自訂事件"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -579,15 +579,15 @@ export default function SchoolCard({
           </motion.div>
           );
         }) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-4 text-xs font-semibold text-gray-400">
+          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-xs font-semibold text-slate-400">
             這間學校暫時還沒有可勾選的申請項目
           </div>
         )}
         </div>
         {hasOverflow && (
-          <div className="pointer-events-none absolute right-1.5 top-1 bottom-1 w-1 rounded-full bg-gray-200/80">
+          <div className="pointer-events-none absolute right-1.5 top-1 bottom-1 w-1 rounded-full bg-slate-200/80">
             <div
-              className="absolute left-0 w-full rounded-full bg-gray-400/90"
+              className="absolute left-0 w-full rounded-full bg-slate-400/90"
               style={{
                 top: `${scrollIndicator.topPct}%`,
                 height: `${scrollIndicator.heightPct}%`,
@@ -599,7 +599,7 @@ export default function SchoolCard({
       <button
         type="button"
         onClick={() => setShowAddCustom(true)}
-        className={`${isOverlay ? 'invisible' : ''} mt-2 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-gray-200 py-1.5 text-[11px] font-semibold text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-600`}
+        className={`${isOverlay ? 'invisible' : ''} mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[11px] font-semibold text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-600`}
         title="新增自訂事件"
       >
         <Plus className="h-3 w-3" />
@@ -609,22 +609,22 @@ export default function SchoolCard({
     {editingTask &&
       createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={closeEditDate} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
-            <h3 className="text-base font-bold text-gray-800">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={closeEditDate} />
+          <div className="relative w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-lg">
+            <h3 className="text-base font-bold text-slate-800">
               自定義「{editingTask.title}」日期與時間
             </h3>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-slate-500">
               學校只公佈日期區間時，請填上您的實際日期；如已知道具體時間，也可一併填寫。
             </p>
-            <label className="mt-4 block text-[11px] font-semibold text-gray-500">日期</label>
+            <label className="mt-4 block text-[11px] font-semibold text-slate-500">日期</label>
             <input
               type="date"
               value={editDateValue}
               onChange={(event) => setEditDateValue(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              className="mt-1 w-full rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
             />
-            <label className="mt-3 block text-[11px] font-semibold text-gray-500">
+            <label className="mt-3 block text-[11px] font-semibold text-slate-500">
               時間（選填，24 小時制）
             </label>
             <div className="mt-1 flex items-center gap-2">
@@ -637,7 +637,7 @@ export default function SchoolCard({
                       : '',
                   )
                 }
-                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+                className="flex-1 rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
               >
                 <option value="">--</option>
                 {Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0')).map((hour) => (
@@ -646,7 +646,7 @@ export default function SchoolCard({
                   </option>
                 ))}
               </select>
-              <span className="text-sm font-semibold text-gray-400">:</span>
+              <span className="text-sm font-semibold text-slate-400">:</span>
               <select
                 value={editTimeValue ? editTimeValue.slice(3, 5) : ''}
                 onChange={(event) =>
@@ -656,7 +656,7 @@ export default function SchoolCard({
                       : '',
                   )
                 }
-                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+                className="flex-1 rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
               >
                 <option value="">--</option>
                 {Array.from(new Set(['00', '15', '30', '45', editTimeValue.slice(3, 5)]))
@@ -673,7 +673,7 @@ export default function SchoolCard({
                 <button
                   type="button"
                   onClick={handleRestoreDate}
-                  className="rounded-xl px-3 py-2 text-xs font-semibold text-gray-400 underline decoration-dotted transition-colors hover:text-gray-600"
+                  className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 underline decoration-dotted transition-colors hover:text-slate-600"
                 >
                   還原為學校日期
                 </button>
@@ -684,7 +684,7 @@ export default function SchoolCard({
                 <button
                   type="button"
                   onClick={closeEditDate}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100"
+                  className="rounded-[10px] px-4 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100"
                 >
                   取消
                 </button>
@@ -692,7 +692,7 @@ export default function SchoolCard({
                   type="button"
                   onClick={saveEditDate}
                   disabled={!editDateValue}
-                  className="theme-gradient rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
+                  className="theme-solid rounded-[10px] px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
                 >
                   確定
                 </button>
@@ -705,10 +705,10 @@ export default function SchoolCard({
     {showAddCustom &&
       createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={closeAddCustom} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
-            <h3 className="text-base font-bold text-gray-800">新增自訂事件</h3>
-            <p className="mt-1 text-xs text-gray-500">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={closeAddCustom} />
+          <div className="relative w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-lg">
+            <h3 className="text-base font-bold text-slate-800">新增自訂事件</h3>
+            <p className="mt-1 text-xs text-slate-500">
               記錄學校未公佈、但對您重要的日子，例如三面、簡介會第二場等。
             </p>
             <input
@@ -716,19 +716,19 @@ export default function SchoolCard({
               value={customTitle}
               onChange={(event) => setCustomTitle(event.target.value)}
               placeholder="事件名稱（例如：三面）"
-              className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              className="mt-4 w-full rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
             />
             <input
               type="date"
               value={customDateValue}
               onChange={(event) => setCustomDateValue(event.target.value)}
-              className="mt-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-indigo-400"
+              className="mt-3 w-full rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
             />
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={closeAddCustom}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100"
+                className="rounded-[10px] px-4 py-2 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-100"
               >
                 取消
               </button>
@@ -736,7 +736,7 @@ export default function SchoolCard({
                 type="button"
                 onClick={saveAddCustom}
                 disabled={!customTitle.trim() || !customDateValue}
-                className="theme-gradient rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
+                className="theme-solid rounded-[10px] px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
               >
                 新增
               </button>

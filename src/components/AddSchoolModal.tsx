@@ -51,44 +51,44 @@ export default function AddSchoolModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40"
           />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl"
+            className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-gray-50 p-6">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 p-6">
               <div className="flex items-center gap-3">
-                <h3 className="text-xl font-extrabold text-gray-800">添加學校</h3>
+                <h3 className="text-xl font-bold text-slate-800">添加學校</h3>
               </div>
               <button
                 onClick={onClose}
-                className="rounded-xl p-2 transition-all hover:bg-gray-100"
+                className="rounded-lg p-2 transition-colors hover:bg-slate-100"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
             <div className="grid flex-1 min-h-0 grid-cols-1 md:grid-cols-5">
-              <div className="custom-scrollbar flex min-h-0 flex-col overflow-y-auto border-b border-gray-100 p-6 md:col-span-3 md:border-b-0 md:border-r">
+              <div className="custom-scrollbar flex min-h-0 flex-col overflow-y-auto border-b border-slate-200 p-6 md:col-span-3 md:border-b-0 md:border-r">
                 <div className="relative mb-6">
                   <input
                     type="text"
                     placeholder="輸入學校名稱...（可輸入中/英文）"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full rounded-2xl border-2 border-transparent bg-gray-50 py-3.5 pl-5 pr-12 font-medium text-gray-700 outline-none transition-all focus:border-indigo-500 focus:bg-white"
+                    className="w-full rounded-[10px] border border-slate-200 bg-slate-50 py-3 pl-4 pr-12 font-medium text-slate-700 outline-none transition-colors focus:border-primary focus:bg-white"
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
                     <Search className="w-5 h-5" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <div className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     搜尋結果 ({filteredSchools.length})
                   </div>
 
@@ -98,43 +98,43 @@ export default function AddSchoolModal({
                         <button
                           key={school.id}
                           onClick={() => onSelectSchool(school)}
-                          className={`group flex w-full items-start justify-between rounded-2xl border-2 p-4 text-left transition-all ${
+                          className={`group flex w-full items-start justify-between rounded-[10px] border p-4 text-left transition-colors ${
                             selectedSchool?.id === school.id
-                              ? 'border-indigo-500 bg-indigo-50/50'
-                              : 'border-transparent bg-gray-50 hover:bg-gray-100'
+                              ? 'border-primary bg-primary-soft'
+                              : 'border-transparent bg-slate-50 hover:bg-slate-100'
                           }`}
                         >
                           <div className="min-w-0 flex-1">
                             <div
                               className={`truncate text-sm font-bold ${
-                                selectedSchool?.id === school.id ? 'text-indigo-700' : 'text-gray-800'
+                                selectedSchool?.id === school.id ? 'text-primary' : 'text-slate-800'
                               }`}
                             >
                               {getSchoolNameZh(school)}
                             </div>
-                            <div className="mt-0.5 truncate text-[10px] font-medium text-gray-400">
+                            <div className="mt-0.5 truncate text-[10px] font-medium text-slate-400">
                               {getSchoolNameEn(school)}
                             </div>
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               {school.district ? (
-                                <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-gray-500 border border-gray-100">
+                                <span className="rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500">
                                   {school.district}
                                 </span>
                               ) : null}
                               {school.school_type ? (
-                                <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 border border-indigo-100">
+                                <span className="rounded border border-primary-border bg-primary-soft px-2 py-0.5 text-[10px] font-semibold text-primary">
                                   {formatSchoolTypeLabel(school.school_type)}
                                 </span>
                               ) : null}
                               {school.gender_policy ?? school.gender ? (
-                                <span className="rounded-full bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-600 border border-pink-100">
+                                <span className="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
                                   {formatSchoolGenderLabel(school.gender_policy ?? school.gender)}
                                 </span>
                               ) : null}
                             </div>
                           </div>
                           {selectedSchool?.id === school.id && (
-                            <div className="theme-gradient ml-3 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full">
+                            <div className="theme-solid ml-3 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded">
                               <div className="h-2 w-2 rounded-full bg-white" />
                             </div>
                           )}
@@ -142,81 +142,81 @@ export default function AddSchoolModal({
                       ))
                     ) : (
                       <div className="py-10 text-center">
-                        <p className="text-sm font-medium text-gray-400">未找到相關學校</p>
+                        <p className="text-sm font-medium text-slate-400">未找到相關學校</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="custom-scrollbar flex min-h-0 flex-col overflow-y-auto bg-gray-50/70 p-6 md:col-span-2">
+              <div className="custom-scrollbar flex min-h-0 flex-col overflow-y-auto bg-slate-50/70 p-6 md:col-span-2">
                 <div className="mb-2 flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-indigo-500" />
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     學校申請時程
                   </div>
                 </div>
 
                 {!selectedSchool ? (
                   <div className="mt-10 text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
-                      <Search className="h-6 w-6 text-gray-300" />
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg border border-slate-200 bg-white">
+                      <Search className="h-6 w-6 text-slate-300" />
                     </div>
-                    <p className="mt-4 text-sm font-semibold text-gray-500">
+                    <p className="mt-4 text-sm font-semibold text-slate-500">
                       請先選擇一間學校
                     </p>
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-1 text-xs text-slate-400">
                       這裡會顯示該學校的申請時程與關鍵日期
                     </p>
                   </div>
                 ) : cyclesLoading ? (
-                  <div className="mt-10 text-center text-sm text-gray-400">
+                  <div className="mt-10 text-center text-sm text-slate-400">
                     正在載入學校申請時程...
                   </div>
                 ) : !latestCycle ? (
-                  <div className="mt-6 space-y-3 rounded-2xl border border-dashed border-gray-200 bg-white p-5">
-                    <div className="text-sm font-bold text-gray-700">
+                  <div className="mt-6 space-y-3 rounded-lg border border-dashed border-slate-300 bg-white p-5">
+                    <div className="text-sm font-bold text-slate-700">
                       {getSchoolNameZh(selectedSchool)}
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-slate-400">
                       目前尚未提供該校的申請時程或關鍵日期。
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="rounded-lg border border-slate-200 bg-white p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-bold text-gray-800">
+                          <div className="truncate text-sm font-bold text-slate-800">
                             {getSchoolNameZh(selectedSchool)}
                           </div>
-                          <div className="mt-0.5 truncate text-[10px] font-medium text-gray-400">
+                          <div className="mt-0.5 truncate text-[10px] font-medium text-slate-400">
                             {getSchoolNameEn(selectedSchool)}
                           </div>
                         </div>
-                        <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-600 border border-indigo-100">
+                        <span className="shrink-0 rounded border border-primary-border bg-primary-soft px-2.5 py-1 text-[10px] font-bold text-primary">
                           {latestCycle.academic_year}
                         </span>
                       </div>
                       {selectedSchool.address_zh ? (
-                        <div className="mt-3 text-[11px] leading-5 text-gray-500">
+                        <div className="mt-3 text-[11px] leading-5 text-slate-500">
                           {selectedSchool.address_zh}
                         </div>
                       ) : null}
                       {selectedSchool.website ? (
-                        <div className="mt-1 truncate text-[11px] text-indigo-600">
+                        <div className="mt-1 truncate text-[11px] text-primary">
                           {selectedSchool.website}
                         </div>
                       ) : null}
                     </div>
 
                     <div>
-                      <div className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      <div className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         關鍵日期
                       </div>
                       <div className="space-y-2">
                         {latestCycle.events.length === 0 ? (
-                          <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-4 text-center text-xs text-gray-400">
+                          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-center text-xs text-slate-400">
                             本學年尚未設定關鍵日期
                           </div>
                         ) : (
@@ -226,23 +226,23 @@ export default function AddSchoolModal({
                             return (
                               <div
                                 key={event.id}
-                                className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm"
+                                className="rounded-lg border border-slate-200 bg-white px-4 py-3"
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
-                                    <div className="truncate text-xs font-bold text-gray-700">
+                                    <div className="truncate text-xs font-bold text-slate-700">
                                       {resolveSchoolEventTitleZh(event)}
                                     </div>
-                                    <div className="mt-1 truncate text-[10px] text-gray-400">
+                                    <div className="mt-1 truncate text-[10px] text-slate-400">
                                       招生節點{event.sequence_no ? ` · 序號 ${event.sequence_no}` : ''}
                                     </div>
                                   </div>
-                                  <div className="shrink-0 rounded-xl bg-indigo-50 px-2.5 py-1.5 text-right text-[11px] font-semibold text-indigo-700">
+                                  <div className="shrink-0 rounded-lg bg-primary-soft px-2.5 py-1.5 text-right text-[11px] font-semibold text-primary">
                                     {dateText}
                                   </div>
                                 </div>
                                 {event.location ? (
-                                  <div className="mt-2 text-[10px] text-gray-400">
+                                  <div className="mt-2 text-[10px] text-slate-400">
                                     地點：{event.location}
                                   </div>
                                 ) : null}
@@ -257,14 +257,14 @@ export default function AddSchoolModal({
               </div>
             </div>
 
-            <div className="shrink-0 border-t border-gray-50 p-6">
+            <div className="shrink-0 border-t border-slate-200 p-6">
               <button
                 onClick={onConfirm}
                 disabled={!selectedSchool}
-                className={`w-full rounded-2xl py-4 text-sm font-bold transition-all ${
+                className={`w-full rounded-[10px] py-3.5 text-sm font-bold transition-colors ${
                   selectedSchool
-                    ? 'theme-gradient text-white shadow-lg hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]'
-                    : 'cursor-not-allowed bg-gray-100 text-gray-400 shadow-none'
+                    ? 'theme-solid text-white hover:opacity-90 active:opacity-80'
+                    : 'cursor-not-allowed bg-slate-100 text-slate-400'
                 }`}
               >
                 確認添加

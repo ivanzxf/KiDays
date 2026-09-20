@@ -182,12 +182,12 @@ export default function UserDashboard() {
   if (!currentStudent) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="rounded-[2rem] border border-white/20 bg-white/10 px-8 py-12 text-center shadow-2xl backdrop-blur-md">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15">
-            <SchoolIcon className="h-8 w-8 text-white" />
+        <div className="rounded-xl border border-slate-200 bg-white px-8 py-12 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary-soft">
+            <SchoolIcon className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="mt-6 text-2xl font-extrabold text-white">還沒有學生檔案</h2>
-          <p className="mt-3 text-sm font-medium leading-7 text-white/70">
+          <h2 className="mt-6 text-2xl font-extrabold text-slate-900">還沒有學生檔案</h2>
+          <p className="mt-3 text-sm font-medium leading-7 text-slate-600">
             請先從右上角新增學生，建立檔案後就可以開始添加學校與追蹤申請進度。
           </p>
         </div>
@@ -199,11 +199,11 @@ export default function UserDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-extrabold text-white flex items-center space-x-3">
-            <SchoolIcon className="w-8 h-8" />
+          <h2 className="text-2xl font-extrabold text-slate-900 flex items-center space-x-3">
+            <SchoolIcon className="w-8 h-8 text-primary" />
             <span>我的學校看板</span>
           </h2>
-          <p className="text-white/60 text-sm font-medium">
+          <p className="text-slate-500 text-sm font-medium">
             按住單卡右上角的十字箭頭可調整順序
           </p>
         </div>
@@ -258,13 +258,13 @@ export default function UserDashboard() {
                   whileHover={{ scale: 1.03, y: -4 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setIsAddSchoolModalOpen(true)}
-                  className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/50 bg-white/50 p-6 shadow-xl transition-all group hover:border-white/80"
+                  className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 transition-colors group hover:border-primary-border"
                 >
-                  <div className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-all">
+                  <div className="w-16 h-16 bg-primary-soft rounded-lg flex items-center justify-center mb-4 transition-colors group-hover:opacity-90">
                     <Plus className="w-8 h-8 theme-text" />
                   </div>
-                  <span className="text-xl font-extrabold text-white/90">添加學校</span>
-                  <span className="text-white/70 text-xs font-medium mt-1">加入追蹤清單</span>
+                  <span className="text-xl font-extrabold text-slate-900">添加學校</span>
+                  <span className="text-slate-500 text-xs font-medium mt-1">加入追蹤清單</span>
                 </motion.button>
               </div>
             </motion.div>

@@ -2,33 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------
+   KiDays 童步 · 設計方向 A（學院簡約）
+   全站固定配色：學院深藍 #1E3A5F 為主色、錄取綠 #16A34A 為狀態色。
+   不再依學生性別切換色系。
+   ------------------------------------------------------------------ */
 :root {
-  --primary-from: #6366f1; /* indigo-500 */
-  --primary-to: #9333ea;   /* purple-600 */
-  --primary-bg: #f5f3ff;   /* purple-50 */
-  --primary-border: #ddd6fe; /* purple-200 */
-  --primary-text: #4f46e5;  /* indigo-600 */
-}
+  --primary: #1e3a5f;
+  --primary-bg: #eaf0f7;
+  --primary-border: #c7d5e5;
+  --primary-text: #1e3a5f;
 
-[data-theme='boy'] {
-  --primary-from: #3b82f6; /* blue-500 */
-  --primary-to: #6366f1;   /* indigo-600 */
-  --primary-bg: #eff6ff;   /* blue-50 */
-  --primary-border: #bfdbfe; /* blue-200 */
-  --primary-text: #2563eb;  /* blue-600 */
-}
+  --accent: #16a34a;
+  --accent-bg: #e7f6ec;
+  --accent-border: #bbe3c8;
 
-[data-theme='girl'] {
-  --primary-from: #ec4899; /* pink-500 */
-  --primary-to: #a855f7;   /* purple-600 */
-  --primary-bg: #fdf2f8;   /* pink-50 */
-  --primary-border: #fbcfe8; /* pink-200 */
-  --primary-text: #db2777;  /* pink-600 */
+  --danger: #dc2626;
+
+  --page-bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #d5dde7;
+  --ink: #0f172a;
+  --ink-soft: #475569;
+
+  --font-ui: 'Inter', 'Noto Sans HK', system-ui, -apple-system, sans-serif;
+  --font-display: 'Noto Serif HK', 'Songti SC', 'Times New Roman', serif;
 }
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen text-gray-900;
+    @apply min-h-screen text-slate-900 antialiased;
+    background-color: var(--page-bg);
+    font-family: var(--font-ui);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 }
 
@@ -60,39 +71,29 @@
   display: none;
 }
 
-.theme-gradient {
-  background: linear-gradient(to bottom right, var(--primary-from), var(--primary-to));
-}
-
-.theme-text {
-  color: var(--primary-text);
-}
-
-.theme-bg {
-  background-color: var(--primary-bg);
-}
-
-.theme-border {
-  border-color: var(--primary-border);
-}
-
-.theme-gradient-text {
-  background: linear-gradient(to right, var(--primary-from), var(--primary-to));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  
-  .card-hover {
-    transition: all 0.3s ease;
+
+  .font-display {
+    font-family: var(--font-display);
   }
-  
-  .card-hover:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+  /* 學院深藍：實色底（設計 A 不使用漸層） */
+  .theme-solid {
+    background-color: var(--primary);
+  }
+
+  .theme-text {
+    color: var(--primary-text);
+  }
+
+  .theme-bg {
+    background-color: var(--primary-bg);
+  }
+
+  .theme-border {
+    border-color: var(--primary-border);
   }
 }

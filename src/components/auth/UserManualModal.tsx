@@ -32,7 +32,7 @@ export default function UserManualModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -40,7 +40,7 @@ export default function UserManualModal({
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.18 }}
             onClick={(event) => event.stopPropagation()}
-            className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
               <h3 className="text-base font-black text-slate-900">用戶手冊及使用條款</h3>
