@@ -111,6 +111,8 @@ export interface Task {
   is_result?: boolean;
   /** 事件開始時間（ISO），供「放榜日是否已到」等日期比較用。 */
   start_at?: string | null;
+  /** 事件結束時間（ISO）；一面／二面等區間事件用，供看板顯示「23-25 Sep」。 */
+  end_at?: string | null;
   sort_order: number;
   created_at: string;
   updated_at: string;

@@ -147,6 +147,7 @@ function createBaseTask(params: {
   isCustom?: boolean;
   isResult?: boolean;
   startAt?: string | null;
+  endAt?: string | null;
   completed: boolean;
   completedAt?: string | null;
 }): StudentTask {
@@ -167,6 +168,7 @@ function createBaseTask(params: {
     is_custom: params.isCustom ?? false,
     is_result: params.isResult ?? false,
     start_at: params.startAt ?? null,
+    end_at: params.endAt ?? null,
     completed: params.completed,
     completed_at: params.completed ? params.completedAt ?? now : null,
     sort_order: params.sortOrder,
@@ -240,6 +242,8 @@ function buildSingleEventTask(params: {
     isEditableDate: isInterviewEvent,
     isResult: params.eventType === 'result_release',
     startAt: event?.start_at ?? null,
+    // 家長自訂日期為單日，區間僅適用於學校公佈的日期
+    endAt: useOverride ? null : event?.end_at ?? null,
     privateOverride: useOverride
       ? {
           date_label: formatCardDateTime(params.overrideDate!, params.overrideTime),
@@ -342,6 +346,10 @@ function buildApplicationTask(params: {
     completionSource: 'application',
     isToggleable: dateStatus === 'confirmed',
     isAvailable: true,
+    // 排序／近期重點事件用：有區間時以開放日為起、截止日為訖
+    startAt:
+      (openDate ? applicationOpen?.start_at : applicationDeadline?.start_at) ?? null,
+    endAt: openDate && deadlineDate ? applicationDeadline?.start_at ?? null : null,
     completed: Boolean(params.appliedAt),
     completedAt: params.appliedAt ?? null,
   });
@@ -395,6 +403,9 @@ function buildExtraEventTask(params: {
       isToggleable: state === 'confirmed',
       isAvailable: true,
       isCustom,
+      // 排序／近期重點事件用：已確認的事件帶上原始日期
+      startAt: state === 'confirmed' ? event.start_at ?? null : null,
+      endAt: state === 'confirmed' ? event.end_at ?? null : null,
       // 自訂事件的勾選狀態直接來自私有表，而非 student_application_progress
       completed: isCustom ? event.custom_completed === true : progress?.status === 'completed',
       completedAt: isCustom ? event.custom_completed_at ?? null : progress?.completed_at,
