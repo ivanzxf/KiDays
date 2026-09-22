@@ -69,6 +69,7 @@ const EXPECTED_HEADER = {
     'website',
     'phone',
     'email',
+    'aliases',
   ],
   cycles: ['school_key', 'academic_year', 'application_level', 'notes'],
   events: HAS_V2

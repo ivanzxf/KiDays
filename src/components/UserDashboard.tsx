@@ -75,6 +75,20 @@ export default function UserDashboard() {
   const getSchoolNameZh = (school: DashboardSchool) => school.nameZh || school.name_zh;
   const getSchoolNameEn = (school: DashboardSchool) => school.nameEn || school.name_en;
 
+  // 搜尋正規化：忽略大小寫、空白與標點，讓 "St. Stephen's" 與 "St Stephens" 等效。
+  const normalizeForSearch = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
+
+  // 相關度排序：別名完全命中 > 別名前綴命中 > 其他（名稱子字串）命中。
+  const getSearchRelevance = (school: DashboardSchool) => {
+    const normalizedQuery = normalizeForSearch(searchQuery.trim());
+    if (normalizedQuery.length === 0) return 0;
+    const aliases = (school.aliases ?? []).map(normalizeForSearch);
+    if (aliases.includes(normalizedQuery)) return 3;
+    if (aliases.some((alias) => alias.startsWith(normalizedQuery))) return 2;
+    return 1;
+  };
+
   const currentStudentSchools = (currentStudent?.addedSchools ?? []).filter(
     school => school.type === studentApplicationType
   );
@@ -90,9 +104,13 @@ export default function UserDashboard() {
       const nameZh = getSchoolNameZh(school) ?? '';
       const nameEn = getSchoolNameEn(school) ?? '';
       const query = searchQuery.trim();
-      const matchesSearch = query.length === 0
+      const normalizedQuery = normalizeForSearch(query);
+      const aliases = school.aliases ?? [];
+      const matchesSearch = normalizedQuery.length === 0
         ? true
-        : nameZh.includes(query) || nameEn.toLowerCase().includes(query.toLowerCase());
+        : normalizeForSearch(nameZh).includes(normalizedQuery) ||
+          normalizeForSearch(nameEn).includes(normalizedQuery) ||
+          aliases.some((alias) => normalizeForSearch(alias).includes(normalizedQuery));
       const matchesType =
         (school.application_level ?? school.type) === studentApplicationType ||
         school.type === studentApplicationType;
@@ -104,7 +122,8 @@ export default function UserDashboard() {
         matchesGender = schoolGenderPolicy === 'boys' || schoolGenderPolicy === 'coed';
       }
       return matchesSearch && matchesType && matchesGender;
-    });
+    })
+    .sort((a, b) => getSearchRelevance(b) - getSearchRelevance(a));
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

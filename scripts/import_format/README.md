@@ -42,11 +42,12 @@ Constraints:
 - `application_level` / `type` 固定 `primary`
 - `gender_policy` 自動等於 `gender`
 - 不需要 `date_status`
+- `aliases`：學校別名／常用簡稱，**以 `|` 分隔**（中英文皆可，例：`SPCC|聖保羅男女`），供前端「新增學校」搜尋比對用（前端會同時比對 name_zh / name_en / aliases）；沒有可留空
 
-| school_key | name_zh | name_en | district | gender | school_net | school_type | address_zh | website | phone | email |
-|---|---|---|---|---|---|---|---|---|---|---|
-| hkddsp1 | 港島直資第一小學 | HK Island Dummy Direct Subsidy Primary No.1 | 港島區 | coed | 12 | direct_subsidy | 香港島中西區半山區一號 | https://example-ps1.kidays.test | 2812 3456 | admission@ps1.kidays.test |
-| klbaps2 | 九龍男拔資助小學 | Kowloon Boys Aided Dummy Primary No.2 | 九龍區 | boys | 40 | aided | 九龍旺角砵蘭街二號 | https://example-ps2.kidays.test | 2388 9910 | admission@ps2.kidays.test |
+| school_key | name_zh | name_en | district | gender | school_net | school_type | address_zh | website | phone | email | aliases |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| hkddsp1 | 港島直資第一小學 | HK Island Dummy Direct Subsidy Primary No.1 | 港島區 | coed | 12 | direct_subsidy | 香港島中西區半山區一號 | https://example-ps1.kidays.test | 2812 3456 | admission@ps1.kidays.test | 港島直資一|HKDDSP1 |
+| klbaps2 | 九龍男拔資助小學 | Kowloon Boys Aided Dummy Primary No.2 | 九龍區 | boys | 40 | aided | 九龍旺角砵蘭街二號 | https://example-ps2.kidays.test | 2388 9910 | admission@ps2.kidays.test |  |
 
 ---
 

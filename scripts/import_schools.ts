@@ -79,6 +79,8 @@ interface SchoolRowRaw {
   website?: string;
   phone?: string;
   email?: string;
+  /** 別名／常用簡稱，以「|」分隔（例：SPCC|聖保羅男女），供搜尋比對用。 */
+  aliases?: string;
 }
 
 interface CycleRowRaw {
@@ -201,6 +203,15 @@ function nullableString(s: string | undefined): string | null {
   return t.length === 0 ? null : t;
 }
 
+/** 解析別名欄（以「|」分隔），組成 aliases 陣列；空值回傳空陣列。 */
+function parseAliases(s: string | undefined): string[] {
+  if (s == null) return [];
+  return s
+    .split('|')
+    .map((alias) => alias.trim())
+    .filter((alias) => alias.length > 0);
+}
+
 // ---------- 轉換：Row → DB Payload ----------
 function schoolRowToPayload(
   row: SchoolRowRaw,
@@ -227,6 +238,7 @@ function schoolRowToPayload(
     email: nullableString(row.email),
     remarks: null,
     is_active: true,
+    aliases: parseAliases(row.aliases),
   };
 }
 

@@ -82,6 +82,8 @@ export interface School {
   is_active: boolean;
   gender_policy: SchoolGenderPolicy | null;
   application_level: ApplicationLevel | null;
+  /** 學校別名／常用簡稱（中英文皆可），僅供搜尋比對用。 */
+  aliases: string[] | null;
 }
 
 export interface Task {

@@ -77,7 +77,7 @@ export default function AddSchoolModal({
                 <div className="relative mb-6">
                   <input
                     type="text"
-                    placeholder="輸入學校名稱...（可輸入中/英文）"
+                    placeholder="輸入學校名稱或簡稱...（如 SPCC、男拔、CKY）"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className="w-full rounded-[10px] border border-slate-200 bg-slate-50 py-3 pl-4 pr-12 font-medium text-slate-700 outline-none transition-colors focus:border-primary focus:bg-white"
