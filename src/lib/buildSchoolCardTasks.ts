@@ -131,6 +131,36 @@ function parseDate(value: string | null | undefined): Date | null {
   }
 }
 
+/** 申請截止前的學校活動：申請截止日一過，這些活動不可能仍是「日期待定」。 */
+const PRE_APPLICATION_EVENT_TYPES = new Set<string>(['open_day', 'info_session']);
+
+/**
+ * 學校層級的申請截止日是否已過。
+ * 只有截止日已確認（confirmed）且有日期時才能判斷；日期待定一律回傳 false。
+ */
+function isApplicationDeadlinePassed(
+  eventsByType: Map<string, SchoolCardEventRow[]>,
+  now: Date,
+): boolean {
+  const deadline = eventsByType.get('application_deadline')?.[0] ?? null;
+  if (!deadline || getEventState(deadline) !== 'confirmed') return false;
+  const deadlineDate = parseDate(deadline.start_at);
+  return deadlineDate !== null && deadlineDate.getTime() < now.getTime();
+}
+
+/**
+ * 申請截止日已過時，開放日／簡介會一律視為 N/A，不可能停在「日期待定」。
+ * 已確認日期或本來就是 N/A 的事件不受影響。
+ */
+function applyDeadlinePassedRule(
+  state: EventState,
+  eventType: string,
+  deadlinePassed: boolean,
+): EventState {
+  if (!deadlinePassed || state !== 'tbd') return state;
+  return PRE_APPLICATION_EVENT_TYPES.has(eventType) ? 'na' : state;
+}
+
 function createBaseTask(params: {
   id: string;
   schoolId: string;
@@ -192,9 +222,15 @@ function buildSingleEventTask(params: {
   overrideStartAt?: string | null;
   /** 自訂時間（24 小時制，如 "10:45"），未填時只顯示日期。 */
   overrideTime?: string | null;
+  /** 申請截止日已過：開放日／簡介會若仍是 TBD，改判為 N/A。 */
+  deadlinePassed?: boolean;
 }): StudentTask {
   const event = params.eventsByType.get(params.eventType)?.[0] ?? null;
-  const state = getEventState(event);
+  const state = applyDeadlinePassedRule(
+    getEventState(event),
+    params.eventType,
+    params.deadlinePassed === true,
+  );
   // 只有一面／二面開放家長自訂日期；事件明確不存在（N/A）時不開放
   const isInterviewEvent =
     params.eventType === 'first_interview' || params.eventType === 'second_interview';
@@ -361,9 +397,15 @@ function buildExtraEventTask(params: {
   studentApplicationId: string;
   event: SchoolCardEventRow;
   progressMap: Map<string, StudentApplicationProgressRow>;
+  /** 申請截止日已過：開放日／簡介會若仍是 TBD，改判為 N/A。 */
+  deadlinePassed?: boolean;
 }): { task: StudentTask; date: Date | null } {
   const { event } = params;
-  const state = getEventState(event);
+  const state = applyDeadlinePassedRule(
+    getEventState(event),
+    event.event_type,
+    params.deadlinePassed === true,
+  );
   const date = state === 'confirmed' ? parseDate(event.start_at) : null;
 
   if (state === 'na') {
@@ -501,6 +543,10 @@ export function buildSchoolCardTasks({
     eventsByType.set(event.event_type, current);
   }
 
+  // 申請截止日已過：開放日／簡介會若仍是 TBD，改判為 N/A（Rolling 學校無學校事件，不適用）
+  const deadlinePassed =
+    !isRollingAdmission && isApplicationDeadlinePassed(eventsByType, new Date());
+
   // 1. 標準行（固定順序）：一般學校 6 行；Rolling 學校 5 行（全部自填日期）
   const standardRows: CardRow[] = [];
 
@@ -556,6 +602,7 @@ export function buildSchoolCardTasks({
         overrideDate: isInterview ? overrideDate : null,
         overrideStartAt: isInterview ? override : null,
         overrideTime: isInterview ? overrideTime : null,
+        deadlinePassed,
       });
       // 排序用的日期：優先採用家長自訂日期
       const date =
@@ -577,13 +624,25 @@ export function buildSchoolCardTasks({
     if (type === 'application_open' || type === 'application_deadline' || STANDARD_SINGLE_EVENT_TYPES.has(type)) {
       for (const event of list.slice(1)) {
         extraRows.push(
-          buildExtraEventTask({ schoolId, studentApplicationId, event, progressMap }),
+          buildExtraEventTask({
+            schoolId,
+            studentApplicationId,
+            event,
+            progressMap,
+            deadlinePassed,
+          }),
         );
       }
     } else {
       for (const event of list) {
         extraRows.push(
-          buildExtraEventTask({ schoolId, studentApplicationId, event, progressMap }),
+          buildExtraEventTask({
+            schoolId,
+            studentApplicationId,
+            event,
+            progressMap,
+            deadlinePassed,
+          }),
         );
       }
     }
