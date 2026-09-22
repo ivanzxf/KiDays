@@ -313,6 +313,10 @@ export default function SchoolCard({
 
   const editingTask = localTasks.find((task) => task.id === editingTaskId) ?? null;
 
+  // 右上角按鈕區（拖曳把手＋刪除鈕）在手機為 44px 觸控目標，
+  // 標題列需預留相同寬度，避免標題／入口切換鈕被壓在按鈕底下。
+  const actionClusterPadding = onDelete ? 'pr-[96px] sm:pr-[84px]' : 'pr-[52px] sm:pr-[44px]';
+
   const handleRestoreDate = () => {
     if (!editingTaskId || !onRestoreDate) return;
     onRestoreDate(id, editingTaskId, activeEntry?.studentApplicationId);
@@ -335,30 +339,32 @@ export default function SchoolCard({
     <>
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5">
       {!isOverlay && (
-        <div className="absolute right-0 top-0 flex items-center gap-0">
-          <div 
+        <div className="absolute right-0 top-0 flex items-center gap-1">
+          <div
             ref={dragHandleRef}
             {...dragHandleAttributes}
             {...dragHandleListeners}
-            className="flex h-8 w-8 items-center justify-center text-slate-400 transition-colors hover:theme-text cursor-grab active:cursor-grabbing"
-            title="按住拖拽排序"
+            aria-label="按住拖曳排序"
+            title="按住拖曳排序"
+            className="flex h-11 w-11 cursor-grab touch-none select-none items-center justify-center rounded-md text-slate-400 transition-colors [-webkit-touch-callout:none] active:bg-slate-100 active:text-slate-700 active:cursor-grabbing hover:theme-text sm:h-9 sm:w-9"
           >
-            <Move className="h-4 w-4" />
+            <Move className="h-5 w-5 sm:h-4 sm:w-4" />
           </div>
           {onDelete && (
             <button
               onClick={() => onDelete(id)}
-              className="-ml-2 flex h-8 w-8 items-center justify-center text-slate-400 transition-colors hover:text-red-500"
+              aria-label="刪除學校"
               title="刪除學校"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-slate-400 transition-colors active:bg-slate-100 hover:text-red-500 sm:h-9 sm:w-9"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5 sm:h-4 sm:w-4" />
             </button>
           )}
         </div>
       )}
 
-      <div className="mb-1 min-h-[48px] pr-1">
-        <div className={`flex min-w-0 items-center gap-3 ${entryPoints.length > 1 ? 'pr-12' : ''}`}>
+      <div className={`mb-1 min-h-[48px] ${actionClusterPadding}`}>
+        <div className="flex min-w-0 items-center gap-3">
           <div className="h-11 w-11 flex-shrink-0 self-center rounded-lg theme-solid flex items-center justify-center">
             <SchoolIcon className="w-6 h-6 text-white" />
           </div>

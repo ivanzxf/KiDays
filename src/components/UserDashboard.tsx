@@ -223,7 +223,7 @@ export default function UserDashboard() {
             <span>我的學校看板</span>
           </h2>
           <p className="text-slate-500 text-sm font-medium">
-            按住單卡右上角的十字箭頭可調整順序
+            按住卡片右上角的十字箭頭，拖曳即可調整順序
           </p>
         </div>
 
@@ -296,7 +296,7 @@ export default function UserDashboard() {
                 animate={{ opacity: 0.85, scale: 1 }}
                 exit={{ opacity: 0, scale: 1 }}
                 transition={{ duration: 0.16, ease: 'easeOut' }}
-                className="pointer-events-none"
+                className="pointer-events-none rounded-xl shadow-2xl"
                 style={{
                   width: activeCardSize.width,
                   height: activeCardSize.height,
