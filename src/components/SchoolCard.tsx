@@ -665,8 +665,16 @@ export default function SchoolCard({
                 className="flex-1 rounded-[10px] border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-primary"
               >
                 <option value="">--</option>
-                {Array.from(new Set(['00', '15', '30', '45', editTimeValue.slice(3, 5)]))
+                {Array.from(
+                  new Set([
+                    ...Array.from({ length: 12 }, (_, index) =>
+                      String(index * 5).padStart(2, '0'),
+                    ),
+                    editTimeValue.slice(3, 5),
+                  ]),
+                )
                   .filter(Boolean)
+                  .sort()
                   .map((minute) => (
                     <option key={minute} value={minute}>
                       {minute}
