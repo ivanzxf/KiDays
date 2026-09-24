@@ -187,6 +187,10 @@ export interface StudentApplication {
   applied_at: string | null;
   result_at: string | null;
   is_shortlisted: boolean;
+  /** 家長標記的「特別心儀」學校；看板置頂顯示。 */
+  is_favorite: boolean;
+  /** 取消「特別心儀」的時間；取消後卡片排在非心儀區最上方。 */
+  unfavorited_at: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -224,6 +228,10 @@ export interface DashboardSchool extends School {
   schoolCycleId?: string;
   applicationStatus?: ApplicationStatus;
   priorityOrder?: number | null;
+  /** 是否為家長標記的「特別心儀」學校；心儀學校在看板置頂。 */
+  isFavorite?: boolean;
+  /** 取消「特別心儀」的時間；取消後卡片排在非心儀區最上方。 */
+  unfavoritedAt?: string | null;
   /** 該校該年度是否為 Rolling Admissions（無固定日期，日期由家長自填）。 */
   isRollingAdmission?: boolean;
   /** 同校所有申請入口（一般學校只有 primary 一個；國際學校可能有 Prep/Year1）。 */

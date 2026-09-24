@@ -4,11 +4,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { DashboardSchool, SchoolEntryPoint, StudentTask } from '@/types';
-import { School as SchoolIcon, CheckCircle2, X, Move, Pencil, Plus, Trash2 } from 'lucide-react';
+import { School as SchoolIcon, CheckCircle2, Heart, X, Pencil, Plus, Trash2 } from 'lucide-react';
 import { formatCardDateTime, getDateParts, isDatePending, NA_LABEL, TBD_LABEL } from '@/lib/formatEventDateLabel';
 import { useApp } from '@/context/AppContext';
-
-type DragHandleListeners = Record<string, Function>;
 
 /** 將 <input type="date"> 的 YYYY-MM-DD 值解析為本地日期（避免時區偏移）。 */
 function parseDateInput(value: string): Date | null {
@@ -54,10 +52,8 @@ interface SchoolCardProps {
     resultStatus: 'offered' | 'waitlisted' | 'rejected' | null,
     applicationId?: string,
   ) => void;
-  dragHandleAttributes?: React.HTMLAttributes<HTMLDivElement>;
-  dragHandleListeners?: DragHandleListeners;
-  dragHandleRef?: (element: HTMLElement | null) => void;
-  isOverlay?: boolean;
+  /** 點擊右上角愛心，切換此校的「特別心儀」狀態（心儀學校在看板置頂）。 */
+  onToggleFavorite?: (schoolId: string) => void;
 }
 
 /** 結果三態配置：選中深色高亮，未選淡色。 */
@@ -101,12 +97,9 @@ export default function SchoolCard({
   onRemoveCustomEvent,
   onRestoreDate,
   onUpdateResult,
-  dragHandleAttributes,
-  dragHandleListeners,
-  dragHandleRef,
-  isOverlay = false,
+  onToggleFavorite,
 }: SchoolCardProps) {
-  const { id, nameZh } = school;
+  const { id, nameZh, isFavorite = false } = school;
   const { currentStudent } = useApp();
 
   // 記憶「最後使用的入口」（Prep / Year 1）：以 學生+學校 為鍵，存於 localStorage
@@ -313,7 +306,7 @@ export default function SchoolCard({
 
   const editingTask = localTasks.find((task) => task.id === editingTaskId) ?? null;
 
-  // 右上角按鈕區（拖曳把手＋刪除鈕）在手機為 44px 觸控目標，
+  // 右上角按鈕區（心儀愛心＋刪除鈕）在手機為 44px 觸控目標，
   // 標題列需預留相同寬度，避免標題／入口切換鈕被壓在按鈕底下。
   const actionClusterPadding = onDelete ? 'pr-[96px] sm:pr-[84px]' : 'pr-[52px] sm:pr-[44px]';
 
@@ -338,30 +331,33 @@ export default function SchoolCard({
   return (
     <>
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5">
-      {!isOverlay && (
-        <div className="absolute right-0 top-0 flex items-center gap-1">
-          <div
-            ref={dragHandleRef}
-            {...dragHandleAttributes}
-            {...dragHandleListeners}
-            aria-label="按住拖曳排序"
-            title="按住拖曳排序"
-            className="flex h-11 w-11 cursor-grab touch-none select-none items-center justify-center rounded-md text-slate-400 transition-colors [-webkit-touch-callout:none] active:bg-slate-100 active:text-slate-700 active:cursor-grabbing hover:theme-text sm:h-9 sm:w-9"
+      <div className="absolute right-0 top-0 flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onToggleFavorite?.(id)}
+          aria-label={isFavorite ? '取消特別心儀' : '標記為特別心儀'}
+          aria-pressed={isFavorite}
+          title={isFavorite ? '已標記特別心儀，點擊可取消' : '標記為特別心儀，會置頂顯示'}
+          className={`flex h-11 w-11 items-center justify-center rounded-md transition-colors active:bg-slate-100 sm:h-9 sm:w-9 ${
+            isFavorite ? 'text-red-400 hover:text-red-500' : 'text-slate-400 hover:text-red-400'
+          }`}
+        >
+          <Heart
+            className="h-5 w-5 sm:h-[18px] sm:w-[18px]"
+            fill={isFavorite ? 'currentColor' : 'none'}
+          />
+        </button>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(id)}
+            aria-label="刪除學校"
+            title="刪除學校"
+            className="flex h-11 w-11 items-center justify-center rounded-md text-slate-400 transition-colors active:bg-slate-100 hover:text-red-500 sm:h-9 sm:w-9"
           >
-            <Move className="h-5 w-5 sm:h-4 sm:w-4" />
-          </div>
-          {onDelete && (
-            <button
-              onClick={() => onDelete(id)}
-              aria-label="刪除學校"
-              title="刪除學校"
-              className="flex h-11 w-11 items-center justify-center rounded-md text-slate-400 transition-colors active:bg-slate-100 hover:text-red-500 sm:h-9 sm:w-9"
-            >
-              <X className="h-5 w-5 sm:h-4 sm:w-4" />
-            </button>
-          )}
-        </div>
-      )}
+            <X className="h-5 w-5 sm:h-4 sm:w-4" />
+          </button>
+        )}
+      </div>
 
       <div className={`mb-1 min-h-[48px] ${actionClusterPadding}`}>
         <div className="flex min-w-0 items-center gap-3">
@@ -481,7 +477,7 @@ export default function SchoolCard({
                   >
                     {task.description ?? TBD_LABEL}
                   </span>
-                  {task.is_editable_date && !isOverlay && (
+                  {task.is_editable_date && (
                     <button
                       type="button"
                       onClick={() => openEditDate(task)}
@@ -496,7 +492,7 @@ export default function SchoolCard({
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   )}
-                  {task.is_custom && !isOverlay && (
+                  {task.is_custom && (
                     <button
                       type="button"
                       onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
@@ -553,7 +549,7 @@ export default function SchoolCard({
                 >
                   {task.description ?? TBD_LABEL}
                 </span>
-                {task.is_editable_date && !isOverlay && (
+                {task.is_editable_date && (
                   <button
                     type="button"
                     onClick={() => openEditDate(task)}
@@ -568,7 +564,7 @@ export default function SchoolCard({
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                 )}
-                {task.is_custom && !isOverlay && (
+                {task.is_custom && (
                   <button
                     type="button"
                     onClick={() => onRemoveCustomEvent?.(id, task.id, activeEntry?.studentApplicationId)}
@@ -605,7 +601,7 @@ export default function SchoolCard({
       <button
         type="button"
         onClick={() => setShowAddCustom(true)}
-        className={`${isOverlay ? 'invisible' : ''} mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[11px] font-semibold text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-600`}
+        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[11px] font-semibold text-slate-400 transition-colors hover:border-slate-300 hover:text-slate-600"
         title="新增自訂事件"
       >
         <Plus className="h-3 w-3" />

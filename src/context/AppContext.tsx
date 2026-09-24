@@ -45,7 +45,8 @@ interface AppContextType {
   removeStudent: (studentId: string) => Promise<void>;
   addSchoolToStudent: (school: DashboardSchool) => Promise<void>;
   removeSchoolFromStudent: (schoolId: string) => Promise<void>;
-  reorderStudentSchools: (schools: DashboardSchool[]) => Promise<void>;
+  /** 切換某校的「特別心儀」標記；心儀學校在看板置頂。 */
+  toggleSchoolFavorite: (schoolId: string) => Promise<void>;
   updateStudentSchoolTasks: (
     schoolId: string,
     tasks: StudentTask[],
@@ -128,6 +129,8 @@ type StudentApplicationRow = {
   school_cycle_id: string;
   status: string;
   priority_order: number | null;
+  is_favorite: boolean;
+  unfavorited_at: string | null;
   applied_at: string | null;
   result_at: string | null;
   created_at: string;
@@ -286,6 +289,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           school_cycle_id,
           status,
           priority_order,
+          is_favorite,
+          unfavorited_at,
           applied_at,
           result_at,
           created_at,
@@ -430,6 +435,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             schoolCycleId: primary?.schoolCycleId,
             applicationStatus: primary?.applicationStatus,
             priorityOrder: primary?.priorityOrder,
+            isFavorite: apps.some((application) => application.is_favorite === true),
+            unfavoritedAt:
+              apps.find((application) => application.unfavorited_at)?.unfavorited_at ?? null,
             isRollingAdmission: primary?.isRollingAdmission,
           };
         });
@@ -712,6 +720,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       schoolCycleId: undefined,
       applicationStatus: 'planned',
       priorityOrder: nextPriority,
+      isFavorite: false,
+      unfavoritedAt: null,
     };
 
     const removeOptimisticIfExists = () => {
@@ -873,20 +883,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const reorderStudentSchools = async (reorderedSchools: DashboardSchool[]) => {
+  /**
+   * 切換某校的「特別心儀」標記。
+   * 心儀屬學校層級，同校所有申請入口（Prep / Year 1）會同步更新。
+   * 取消心儀時記錄時間，讓卡片改排到非心儀區最上方，而不是跳回原本的事件排序位置。
+   */
+  const toggleSchoolFavorite = async (schoolId: string) => {
     if (!currentStudent || !authUserId) return;
 
-    const normalizedSchools = reorderedSchools.map((school, index) => ({
-      ...school,
-      priorityOrder: index + 1,
-    }));
+    const targetSchool = currentStudent.addedSchools.find((school) => school.id === schoolId);
+    if (!targetSchool) return;
+
+    const applicationIds = (targetSchool.entryPoints ?? [])
+      .map((entry) => entry.studentApplicationId)
+      .filter(Boolean);
+    if (applicationIds.length === 0 && targetSchool.studentApplicationId) {
+      applicationIds.push(targetSchool.studentApplicationId);
+    }
+    if (applicationIds.length === 0) return;
+
+    const nextFavorite = !targetSchool.isFavorite;
+    const nextUnfavoritedAt = nextFavorite ? null : new Date().toISOString();
+
+    const { error } = await supabase
+      .from('student_applications')
+      .update({ is_favorite: nextFavorite, unfavorited_at: nextUnfavoritedAt })
+      .in('id', applicationIds);
+
+    if (error) {
+      console.error('Error updating school favorite:', error);
+      return;
+    }
 
     updateCurrentStudent((student) => ({
       ...student,
-      addedSchools: normalizedSchools,
+      addedSchools: student.addedSchools.map((school) =>
+        school.id === schoolId
+          ? { ...school, isFavorite: nextFavorite, unfavoritedAt: nextUnfavoritedAt }
+          : school,
+      ),
     }));
-
-    void persistStudentApplicationOrder(normalizedSchools);
   };
 
   const updateStudentSchoolTasks = async (
@@ -1324,7 +1360,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         removeStudent,
         addSchoolToStudent,
         removeSchoolFromStudent,
-        reorderStudentSchools,
+        toggleSchoolFavorite,
         updateStudentSchoolTasks,
         addCustomEvent,
         removeCustomEvent,
