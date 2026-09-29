@@ -5,7 +5,11 @@ import { motion } from 'framer-motion';
 import { CalendarClock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { DashboardSchool, StudentGender, StudentTask } from '@/types';
-import { formatCardDateFull, formatSchoolEventRangeLabel } from '@/lib/formatEventDateLabel';
+import {
+  formatCardDateFull,
+  formatSchoolEventRangeLabel,
+  formatTimeLabel,
+} from '@/lib/formatEventDateLabel';
 
 type EmbeddedSchool = { name_zh: string; school_type: string | null; gender_policy: string | null };
 type EmbeddedCycle =
@@ -37,7 +41,7 @@ type DisplayEvent = {
   startAt: string;
   /** 副標顯示的日期文字（個人看板為單日或區間，不含時間）。 */
   dateLabel: string;
-  /** 多場活動的自訂時間文字（僅公開模式使用）。 */
+  /** 副標顯示的時間文字：公開模式為多場活動的自訂時間，個人看板為家長自訂的面試時間。 */
   timeLabel?: string | null;
 };
 
@@ -114,7 +118,7 @@ function mapFeaturedEvents(
  * 個人看板：直接從學生已加入學校的 reactive tasks 推導事件，
  * 涵蓋學校公佈日期（含一面／二面區間）、家長自訂的面試日期、家長新增的自訂事件。
  * 由於 tasks 隨 currentStudent 更新，家長每次加入學校或修改日期，看板即時反映。
- * 只取日期，不顯示具體時間。
+ * 副標顯示日期；家長自訂的面試時間會一併顯示（例如「一面 · 8 Oct 2026 · 10:45」）。
  */
 function buildBoardEvents(schools: DashboardSchool[]): DisplayEvent[] {
   const events: DisplayEvent[] = [];
@@ -155,6 +159,8 @@ function buildBoardEvents(schools: DashboardSchool[]): DisplayEvent[] {
           dateLabel: overrideStart
             ? formatCardDateFull(startDate)
             : formatSchoolEventRangeLabel(task.start_at, task.end_at, task.date_status),
+          // 家長自訂的面試時間（一面／二面）；學校公佈的日期只有日、無具體時間
+          timeLabel: formatTimeLabel(task.private_override?.start_time) || null,
         });
       }
     }
@@ -401,7 +407,10 @@ export default function UpcomingEvents({
                   <div className="truncate text-sm font-bold text-slate-800">{event.schoolName}</div>
                   <div className="mt-0.5 truncate text-xs text-slate-500">
                     {event.eventLabel}
-                    {board ? ` · ${event.dateLabel}` : formatEventTime(event.startAt, event.timeLabel)}
+                    {/* 個人看板：日期＋（如家長有填）具體時間；公開模式：日期後的活動時間 */}
+                    {board
+                      ? ` · ${event.dateLabel}${event.timeLabel ? ` · ${event.timeLabel}` : ''}`
+                      : formatEventTime(event.startAt, event.timeLabel)}
                   </div>
                 </div>
                 <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${toneClass}`}>
