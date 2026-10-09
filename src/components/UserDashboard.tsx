@@ -219,8 +219,8 @@ export default function UserDashboard() {
           </div>
 
           {sortedStudentSchools.map(school => (
-            <div key={school.id} className="relative w-full">
-              <div className="mx-auto w-full max-w-sm">
+            <div key={school.id} className="relative h-full w-full">
+              <div className="mx-auto h-full w-full max-w-sm">
                 <SchoolCard
                   school={school}
                   onTaskUpdate={updateStudentSchoolTasks}
@@ -239,14 +239,14 @@ export default function UserDashboard() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
-            className="w-full"
+            className="h-full w-full"
           >
-            <div className="mx-auto w-full max-w-sm">
+            <div className="mx-auto h-full w-full max-w-sm">
               <motion.button
                 whileHover={{ scale: 1.03, y: -4 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setIsAddSchoolModalOpen(true)}
-                className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 transition-colors group hover:border-primary-border"
+                className="flex h-full min-h-[220px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 transition-colors group hover:border-primary-border"
               >
                 <div className="w-16 h-16 bg-primary-soft rounded-lg flex items-center justify-center mb-4 transition-colors group-hover:opacity-90">
                   <Plus className="w-8 h-8 theme-text" />
