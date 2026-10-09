@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, School as SchoolIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
@@ -94,9 +94,25 @@ export default function UserDashboard() {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
+  // 排序用的「下一個未完成活動」時間快照：只在學校清單變動（新增／移除／重新整理）時重算。
+  // 勾選完成任務不會改變學校清單，因此卡片不會即時重排；重新整理頁面後才依最新狀態排序。
+  const schoolIdsKey = currentStudentSchools.map((school) => school.id).join('|');
+  const nextEventTimeMap = useMemo(() => {
+    const map = new Map<string, number | null>();
+    for (const school of currentStudentSchools) {
+      const nextEvent = getNextEventTime(school);
+      map.set(
+        school.id,
+        nextEvent !== null && nextEvent >= todayStart.getTime() ? nextEvent : null,
+      );
+    }
+    return map;
+    // 刻意不依賴任務內容，僅在學校清單變動時重算，避免勾選完成後立即重排。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schoolIdsKey]);
+
   const sortedStudentSchools = [...currentStudentSchools]
     .map((school, index) => {
-      const nextEvent = getNextEventTime(school);
       const unfavoritedAt = school.unfavoritedAt ? new Date(school.unfavoritedAt).getTime() : null;
       return {
         school,
@@ -104,7 +120,7 @@ export default function UserDashboard() {
         favorite: school.isFavorite === true,
         unfavoritedAt:
           unfavoritedAt !== null && !Number.isNaN(unfavoritedAt) ? unfavoritedAt : null,
-        upcoming: nextEvent !== null && nextEvent >= todayStart.getTime() ? nextEvent : null,
+        upcoming: nextEventTimeMap.get(school.id) ?? null,
       };
     })
     .sort((a, b) => {
